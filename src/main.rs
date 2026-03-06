@@ -4,9 +4,15 @@ use std::str;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let file_path = &args[1];
 
-    let fp = fs::read_to_string(file_path).expect("Failed to read file");
+    if args.len() < 3 {
+        panic!("Two parameters expected, only received {}", args.len() - 1);
+    }
+
+    let file_in = &args[1];
+    let file_out = &args[2];
+
+    let fp = fs::read_to_string(file_in).expect("Failed to read file");
 
     let lines: Vec<&str> = fp.split('\n').collect();
 
