@@ -2,6 +2,8 @@ use std::env;
 use std::fs;
 use std::str;
 
+pub mod vec3;
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
