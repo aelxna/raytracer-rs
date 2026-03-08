@@ -1,29 +1,19 @@
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+pub struct Vec2 {
+    pub x: f32,
+    pub y: f32,
 }
 
-fn vec3_new(x: f32, y: f32, z: f32) -> Vec3 {
-    Vec3 { x: x, y: y, z: z }
+fn vec2_new(x: f32, y: f32) -> Vec2 {
+    Vec2 { x: x, y: y }
 }
 
-impl Vec3 {
+impl Vec2 {
     #[inline]
     fn dot(&self, v: &Self) -> f32 {
-        (self.x * v.x) + (self.y * v.y) + (self.z * v.z)
-    }
-
-    #[inline]
-    fn cross(&self, v: &Self) -> Self {
-        Vec3 {
-            x: (self.y * v.z) - (self.z * v.y),
-            y: (self.z * v.x) - (self.x * v.z),
-            z: (self.x * v.y) - (self.y * v.x),
-        }
+        (self.x * v.x) + (self.y * v.y)
     }
 
     #[inline]
@@ -37,13 +27,13 @@ impl Vec3 {
     }
 
     #[inline]
-    fn norm(&self) -> Vec3 {
+    fn norm(&self) -> Self {
         *self / self.mag()
     }
 
     #[inline]
-    fn clamp(&self, min: f32, max: f32) -> Vec3 {
-        Vec3 {
+    fn clamp(&self, min: f32, max: f32) -> Vec2 {
+        Vec2 {
             x: if self.x < min {
                 min
             } else {
@@ -54,76 +44,66 @@ impl Vec3 {
             } else {
                 if self.y > max { max } else { self.y }
             },
-            z: if self.z < min {
-                min
-            } else {
-                if self.z > max { max } else { self.z }
-            },
         }
     }
 }
 
-impl Add for Vec3 {
+impl Add for Vec2 {
     type Output = Self;
 
     #[inline]
     fn add(self, v: Self) -> Self {
-        Vec3 {
+        Vec2 {
             x: self.x + v.x,
             y: self.y + v.y,
-            z: self.z + v.z,
         }
     }
 }
 
-impl Sub for Vec3 {
+impl Sub for Vec2 {
     type Output = Self;
 
     #[inline]
     fn sub(self, v: Self) -> Self {
-        Vec3 {
+        Vec2 {
             x: self.x - v.x,
             y: self.y - v.y,
-            z: self.z - v.z,
         }
     }
 }
 
-impl Mul<f32> for Vec3 {
+impl Mul<f32> for Vec2 {
     type Output = Self;
 
     #[inline]
     fn mul(self, s: f32) -> Self {
-        Vec3 {
+        Vec2 {
             x: self.x * s,
             y: self.y * s,
-            z: self.z * s,
         }
     }
 }
 
-impl Div<f32> for Vec3 {
+impl Div<f32> for Vec2 {
     type Output = Self;
 
     #[inline]
     fn div(self, s: f32) -> Self {
-        Vec3 {
+        Vec2 {
             x: self.x / s,
             y: self.y / s,
-            z: self.z / s,
         }
     }
 }
 
-impl Neg for Vec3 {
+impl Neg for Vec2 {
     type Output = Self;
 
     #[inline]
     fn neg(self) -> Self {
-        Vec3 {
+        Vec2 {
             x: -self.x,
             y: -self.y,
-            z: -self.z,
         }
     }
 }
