@@ -44,21 +44,9 @@ impl Vec3 {
     #[inline]
     pub fn clamp(&self, min: f32, max: f32) -> Vec3 {
         Vec3 {
-            x: if self.x < min {
-                min
-            } else {
-                if self.x > max { max } else { self.x }
-            },
-            y: if self.y < min {
-                min
-            } else {
-                if self.y > max { max } else { self.y }
-            },
-            z: if self.z < min {
-                min
-            } else {
-                if self.z > max { max } else { self.z }
-            },
+            x: self.x.clamp(min, max),
+            y: self.y.clamp(min, max),
+            z: self.z.clamp(min, max),
         }
     }
 }
