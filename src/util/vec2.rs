@@ -12,27 +12,27 @@ fn vec2_new(x: f32, y: f32) -> Vec2 {
 
 impl Vec2 {
     #[inline]
-    fn dot(&self, v: &Self) -> f32 {
+    pub fn dot(&self, v: &Self) -> f32 {
         (self.x * v.x) + (self.y * v.y)
     }
 
     #[inline]
-    fn sq_mag(&self) -> f32 {
+    pub fn sq_mag(&self) -> f32 {
         self.dot(self)
     }
 
     #[inline]
-    fn mag(&self) -> f32 {
+    pub fn mag(&self) -> f32 {
         self.sq_mag().sqrt()
     }
 
     #[inline]
-    fn norm(&self) -> Self {
+    pub fn norm(&self) -> Self {
         *self / self.mag()
     }
 
     #[inline]
-    fn clamp(&self, min: f32, max: f32) -> Vec2 {
+    pub fn clamp(&self, min: f32, max: f32) -> Vec2 {
         Vec2 {
             x: if self.x < min {
                 min

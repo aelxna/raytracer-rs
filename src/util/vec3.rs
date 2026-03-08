@@ -13,12 +13,12 @@ fn vec3_new(x: f32, y: f32, z: f32) -> Vec3 {
 
 impl Vec3 {
     #[inline]
-    fn dot(&self, v: &Self) -> f32 {
+    pub fn dot(&self, v: &Self) -> f32 {
         (self.x * v.x) + (self.y * v.y) + (self.z * v.z)
     }
 
     #[inline]
-    fn cross(&self, v: &Self) -> Self {
+    pub fn cross(&self, v: &Self) -> Self {
         Vec3 {
             x: (self.y * v.z) - (self.z * v.y),
             y: (self.z * v.x) - (self.x * v.z),
@@ -27,22 +27,22 @@ impl Vec3 {
     }
 
     #[inline]
-    fn sq_mag(&self) -> f32 {
+    pub fn sq_mag(&self) -> f32 {
         self.dot(self)
     }
 
     #[inline]
-    fn mag(&self) -> f32 {
+    pub fn mag(&self) -> f32 {
         self.sq_mag().sqrt()
     }
 
     #[inline]
-    fn norm(&self) -> Vec3 {
+    pub fn norm(&self) -> Vec3 {
         *self / self.mag()
     }
 
     #[inline]
-    fn clamp(&self, min: f32, max: f32) -> Vec3 {
+    pub fn clamp(&self, min: f32, max: f32) -> Vec3 {
         Vec3 {
             x: if self.x < min {
                 min

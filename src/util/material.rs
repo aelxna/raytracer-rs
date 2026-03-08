@@ -44,7 +44,7 @@ pub struct Texture {
 
 impl Texture {
     #[inline]
-    fn lookup(&self, coord: &Vec2) -> Vec3 {
+    pub fn lookup(&self, coord: &Vec2) -> Vec3 {
         let u: f32 = (coord.x % 1.0).abs();
         let v: f32 = (coord.y % 1.0).abs();
 
