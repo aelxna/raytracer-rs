@@ -1,7 +1,7 @@
 use crate::util::vec2::*;
 use crate::util::vec3::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Material {
     diffuse: Vec3,
     specular: Vec3,
@@ -14,8 +14,8 @@ pub struct Material {
 }
 
 fn mtl_new(
-    od: &Vec3,
-    os: &Vec3,
+    od: Vec3,
+    os: Vec3,
     ka: f32,
     kd: f32,
     ks: f32,
@@ -24,8 +24,8 @@ fn mtl_new(
     eta: f32,
 ) -> Material {
     Material {
-        diffuse: od.clone(),
-        specular: os.clone(),
+        diffuse: od,
+        specular: os,
         ka: ka,
         kd: kd,
         ks: ks,
@@ -44,7 +44,16 @@ pub struct Texture {
 
 impl Texture {
     #[inline]
-    pub fn lookup(&self, coord: &Vec2) -> Vec3 {
+    pub fn new(w: usize, h: usize, img: Vec<Vec3>) -> Self {
+        Self {
+            width: w,
+            height: h,
+            img: img,
+        }
+    }
+
+    #[inline]
+    pub fn lookup(&self, coord: Vec2) -> Vec3 {
         let u: f32 = (coord.x % 1.0).abs();
         let v: f32 = (coord.y % 1.0).abs();
 

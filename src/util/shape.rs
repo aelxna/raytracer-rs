@@ -36,6 +36,7 @@ pub struct Triangle {
 }
 
 impl Triangle {
+    #[inline]
     pub fn new(
         v: [Vec3; 3],
         n: [Vec3; 3],
