@@ -37,8 +37,8 @@ fn mtl_new(
 
 #[derive(Debug, Clone)]
 pub struct Texture {
-    width: u32,
-    height: u32,
+    width: usize,
+    height: usize,
     img: Vec<Vec3>,
 }
 
@@ -48,10 +48,10 @@ impl Texture {
         let u: f32 = (coord.x % 1.0).abs();
         let v: f32 = (coord.y % 1.0).abs();
 
-        let x: u32 = (u * ((self.width as f32) - 1.0)).round() as u32;
-        let y: u32 = (v * ((self.width as f32) - 1.0)).round() as u32;
+        let x: usize = (u * ((self.width as f32) - 1.0)).round() as usize;
+        let y: usize = (v * ((self.height as f32) - 1.0)).round() as usize;
 
-        match self.img.get((x + (y * self.width)) as usize) {
+        match self.img.get(x + (y * self.width)) {
             None => self.img[0],
             Some(&color) => color,
         }
