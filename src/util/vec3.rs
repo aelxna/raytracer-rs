@@ -7,19 +7,20 @@ pub struct Vec3 {
     pub z: f32,
 }
 
-fn vec3_new(x: f32, y: f32, z: f32) -> Vec3 {
-    Vec3 { x: x, y: y, z: z }
-}
-
 impl Vec3 {
     #[inline]
-    pub fn dot(&self, v: &Self) -> f32 {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x: x, y: y, z: z }
+    }
+
+    #[inline]
+    pub fn dot(&self, v: Self) -> f32 {
         (self.x * v.x) + (self.y * v.y) + (self.z * v.z)
     }
 
     #[inline]
-    pub fn cross(&self, v: &Self) -> Self {
-        Vec3 {
+    pub fn cross(&self, v: Self) -> Self {
+        Self {
             x: (self.y * v.z) - (self.z * v.y),
             y: (self.z * v.x) - (self.x * v.z),
             z: (self.x * v.y) - (self.y * v.x),
@@ -28,7 +29,7 @@ impl Vec3 {
 
     #[inline]
     pub fn sq_mag(&self) -> f32 {
-        self.dot(self)
+        self.dot(*self)
     }
 
     #[inline]
@@ -37,13 +38,13 @@ impl Vec3 {
     }
 
     #[inline]
-    pub fn norm(&self) -> Vec3 {
+    pub fn norm(&self) -> Self {
         *self / self.mag()
     }
 
     #[inline]
-    pub fn clamp(&self, min: f32, max: f32) -> Vec3 {
-        Vec3 {
+    pub fn clamp(&self, min: f32, max: f32) -> Self {
+        Self {
             x: self.x.clamp(min, max),
             y: self.y.clamp(min, max),
             z: self.z.clamp(min, max),
@@ -56,7 +57,7 @@ impl Add for Vec3 {
 
     #[inline]
     fn add(self, v: Self) -> Self {
-        Vec3 {
+        Self {
             x: self.x + v.x,
             y: self.y + v.y,
             z: self.z + v.z,
@@ -69,7 +70,7 @@ impl Sub for Vec3 {
 
     #[inline]
     fn sub(self, v: Self) -> Self {
-        Vec3 {
+        Self {
             x: self.x - v.x,
             y: self.y - v.y,
             z: self.z - v.z,
@@ -95,7 +96,7 @@ impl Div<f32> for Vec3 {
 
     #[inline]
     fn div(self, s: f32) -> Self {
-        Vec3 {
+        Self {
             x: self.x / s,
             y: self.y / s,
             z: self.z / s,
@@ -108,7 +109,7 @@ impl Neg for Vec3 {
 
     #[inline]
     fn neg(self) -> Self {
-        Vec3 {
+        Self {
             x: -self.x,
             y: -self.y,
             z: -self.z,
@@ -122,9 +123,9 @@ pub struct Ray3 {
     pub dir: Vec3,
 }
 
-fn ray3_new(o: &Vec3, d: &Vec3) -> Ray3 {
-    Ray3 {
-        origin: o.clone(),
-        dir: d.clone(),
+impl Ray3 {
+    #[inline]
+    pub fn new(o: Vec3, d: Vec3) -> Self {
+        Self { origin: o, dir: d }
     }
 }

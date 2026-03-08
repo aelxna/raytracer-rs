@@ -12,13 +12,18 @@ fn vec2_new(x: f32, y: f32) -> Vec2 {
 
 impl Vec2 {
     #[inline]
-    pub fn dot(&self, v: &Self) -> f32 {
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x: x, y: y }
+    }
+
+    #[inline]
+    pub fn dot(&self, v: Self) -> f32 {
         (self.x * v.x) + (self.y * v.y)
     }
 
     #[inline]
     pub fn sq_mag(&self) -> f32 {
-        self.dot(self)
+        self.dot(*self)
     }
 
     #[inline]
@@ -32,8 +37,8 @@ impl Vec2 {
     }
 
     #[inline]
-    pub fn clamp(&self, min: f32, max: f32) -> Vec2 {
-        Vec2 {
+    pub fn clamp(&self, min: f32, max: f32) -> Self {
+        Self {
             x: self.x.clamp(min, max),
             y: self.y.clamp(min, max),
         }
@@ -45,7 +50,7 @@ impl Add for Vec2 {
 
     #[inline]
     fn add(self, v: Self) -> Self {
-        Vec2 {
+        Self {
             x: self.x + v.x,
             y: self.y + v.y,
         }
@@ -57,7 +62,7 @@ impl Sub for Vec2 {
 
     #[inline]
     fn sub(self, v: Self) -> Self {
-        Vec2 {
+        Self {
             x: self.x - v.x,
             y: self.y - v.y,
         }
@@ -69,7 +74,7 @@ impl Mul<f32> for Vec2 {
 
     #[inline]
     fn mul(self, s: f32) -> Self {
-        Vec2 {
+        Self {
             x: self.x * s,
             y: self.y * s,
         }
@@ -81,7 +86,7 @@ impl Div<f32> for Vec2 {
 
     #[inline]
     fn div(self, s: f32) -> Self {
-        Vec2 {
+        Self {
             x: self.x / s,
             y: self.y / s,
         }
@@ -93,7 +98,7 @@ impl Neg for Vec2 {
 
     #[inline]
     fn neg(self) -> Self {
-        Vec2 {
+        Self {
             x: -self.x,
             y: -self.y,
         }
