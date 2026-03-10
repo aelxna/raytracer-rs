@@ -1,6 +1,7 @@
 use crate::util::vec3::*;
 
-struct Light {
+#[derive(Debug, Clone)]
+pub struct Light {
     pub pos: Vec3,
     pub point: bool,
     pub intensity: f32,

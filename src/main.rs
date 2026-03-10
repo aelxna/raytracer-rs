@@ -2,6 +2,9 @@ use std::env;
 use std::fs;
 use std::str;
 
+use crate::io::scene::*;
+
+pub mod io;
 pub mod util;
 
 fn main() {

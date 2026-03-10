@@ -8,30 +8,33 @@ pub struct Material {
     ka: f32,
     kd: f32,
     ks: f32,
-    n: f32,
+    exp: f32,
     alpha: f32,
     eta: f32,
 }
 
-fn mtl_new(
-    od: Vec3,
-    os: Vec3,
-    ka: f32,
-    kd: f32,
-    ks: f32,
-    n: f32,
-    alpha: f32,
-    eta: f32,
-) -> Material {
-    Material {
-        diffuse: od,
-        specular: os,
-        ka: ka,
-        kd: kd,
-        ks: ks,
-        n: n,
-        alpha: alpha,
-        eta: eta,
+impl Material {
+    #[inline]
+    pub fn new(
+        od: Vec3,
+        os: Vec3,
+        ka: f32,
+        kd: f32,
+        ks: f32,
+        n: f32,
+        alpha: f32,
+        eta: f32,
+    ) -> Self {
+        Self {
+            diffuse: od,
+            specular: os,
+            ka: ka,
+            kd: kd,
+            ks: ks,
+            exp: n,
+            alpha: alpha,
+            eta: eta,
+        }
     }
 }
 
