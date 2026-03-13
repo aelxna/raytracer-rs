@@ -8,29 +8,27 @@ pub trait Construct: Sized {
         I: Iterator<Item = &'a str>;
 }
 
-impl Construct for usize {
-    fn construct<'a, I>(it: &mut I) -> Result<Self>
-    where
-        I: Iterator<Item = &'a str>,
-    {
-        match it.next() {
-            None => bail!("No value present"),
-            Some(u) => Ok(u.parse()?),
+// implements Construct for primitive types
+macro_rules! impl_construct {
+    ($ty:ty) => {
+        impl Construct for $ty {
+            fn construct<'a, I>(it: &mut I) -> Result<Self>
+            where
+                I: Iterator<Item = &'a str>,
+            {
+                match it.next() {
+                    None => bail!("No value present"),
+                    Some(x) => Ok(x.parse()?),
+                }
+            }
         }
-    }
+    };
 }
 
-impl Construct for f32 {
-    fn construct<'a, I>(it: &mut I) -> Result<Self>
-    where
-        I: Iterator<Item = &'a str>,
-    {
-        match it.next() {
-            None => bail!("No value present"),
-            Some(f) => Ok(f.parse()?),
-        }
-    }
-}
+impl_construct!(usize);
+impl_construct!(u32);
+impl_construct!(i32);
+impl_construct!(f32);
 
 impl Construct for Vec3 {
     fn construct<'a, I>(it: &mut I) -> Result<Self>

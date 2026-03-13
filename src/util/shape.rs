@@ -26,7 +26,7 @@ impl Sphere {
 #[derive(Debug, Clone)]
 pub struct Triangle {
     pub vertices: [Vec3; 3],
-    pub normals: [Vec3; 3],
+    pub normals: Option<[Vec3; 3]>,
     pub e1: Vec3,
     pub e2: Vec3,
     pub snorm: Vec3,
@@ -40,7 +40,7 @@ impl Triangle {
     #[inline]
     pub fn new(
         v: [Vec3; 3],
-        n: [Vec3; 3],
+        n: Option<[Vec3; 3]>,
         mtl: Rc<Material>,
         tx: Option<Rc<Texture>>,
         tc: Option<[Vec2; 3]>,
