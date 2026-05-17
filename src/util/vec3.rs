@@ -52,6 +52,11 @@ impl Vec3 {
     }
 
     #[inline]
+    pub fn lerp(&self, v: Vec3, amt: f32) -> Self {
+        self.clone() + ((v - self.clone()) * amt)
+    }
+
+    #[inline]
     pub fn from_rgb(pixel: [u8; 3]) -> Self {
         Self {
             x: pixel[0] as f32 / 255.0,

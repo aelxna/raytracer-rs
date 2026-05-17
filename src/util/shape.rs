@@ -1,6 +1,7 @@
 use crate::util::material::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
+use image::RgbImage;
 use std::rc::Rc;
 
 #[derive(Debug, Clone)]
@@ -8,12 +9,12 @@ pub struct Sphere {
     pub center: Vec3,
     pub radius: f32,
     pub mtl: Rc<Material>,
-    pub texture: Option<Rc<Texture>>,
+    pub texture: Option<Rc<RgbImage>>,
 }
 
 impl Sphere {
     #[inline]
-    pub fn new(c: Vec3, r: f32, mtl: Rc<Material>, tx: Option<Rc<Texture>>) -> Self {
+    pub fn new(c: Vec3, r: f32, mtl: Rc<Material>, tx: Option<Rc<RgbImage>>) -> Self {
         Self {
             center: c,
             radius: r,
@@ -32,7 +33,7 @@ pub struct Triangle {
     pub snorm: Vec3,
     pub d: f32,
     pub mtl: Rc<Material>,
-    pub texture: Option<Rc<Texture>>,
+    pub texture: Option<Rc<RgbImage>>,
     pub texcoords: Option<[Vec2; 3]>,
 }
 
@@ -42,7 +43,7 @@ impl Triangle {
         v: [Vec3; 3],
         n: Option<[Vec3; 3]>,
         mtl: Rc<Material>,
-        tx: Option<Rc<Texture>>,
+        tx: Option<Rc<RgbImage>>,
         tc: Option<[Vec2; 3]>,
     ) -> Self {
         let e1 = v[1] - v[0];
