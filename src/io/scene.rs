@@ -5,6 +5,7 @@ use crate::util::shape::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
 use anyhow::{Context, Result, bail};
+use image::{DynamicImage, ImageReader, RgbImage};
 use std::fs;
 use std::rc::Rc;
 use std::str;
@@ -188,7 +189,7 @@ pub struct Scene {
     pub txcoords: Vec<Vec2>,
     pub shapes: Vec<Shape>,
     pub materials: Vec<Rc<Material>>,
-    pub textures: Vec<Rc<Texture>>,
+    pub textures: Vec<Rc<RgbImage>>,
     pub lights: Vec<Light>,
     pub eye: Option<Vec3>,
     pub view: Option<Vec3>,
@@ -284,7 +285,14 @@ impl Scene {
                     "texture" => match tokens.next() {
                         None => continue,
                         Some(f) => {
-                            scene.textures.push(Rc::new(Texture::from(f)?));
+                            let img_file = ImageReader::open(f)
+                                .with_context(|| format!("Failed to open texture {}", f))?;
+                            let decoded: DynamicImage = img_file
+                                .decode()
+                                .with_context(|| format!("Failed to decode texture {}", f))?;
+                            let img: RgbImage = decoded.into_rgb8();
+
+                            scene.textures.push(Rc::new(img));
                             continue;
                         }
                     },

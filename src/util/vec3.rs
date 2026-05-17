@@ -50,6 +50,15 @@ impl Vec3 {
             z: self.z.clamp(min, max),
         }
     }
+
+    #[inline]
+    pub fn from_rgb(pixel: [u8; 3]) -> Self {
+        Self {
+            x: pixel[0] as f32 / 255.0,
+            y: pixel[1] as f32 / 255.0,
+            z: pixel[2] as f32 / 255.0,
+        }
+    }
 }
 
 impl Add for Vec3 {
