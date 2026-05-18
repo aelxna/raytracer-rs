@@ -1,7 +1,8 @@
 use anyhow::{Context, Result, anyhow, bail};
+use image::{Rgb, RgbImage};
+use indicatif::ProgressBar;
 use std::env;
-use std::fs;
-use std::str;
+use util::vec3::*;
 
 use crate::io::scene::*;
 
@@ -22,15 +23,32 @@ fn main() -> Result<()> {
     let file_out = &args[2];
 
     // TODO: generate config from lines
-    let scene: Scene = Scene::from(file_in)?;
+    let scene: Scene = Scene::from(file_in)?.clone();
 
-    dbg!(scene);
+    dbg!(&scene);
+
+    let width: u32 = match &scene.width {
+        None => bail!("No width argument supplied"),
+        Some(w) => w.clone(),
+    };
+    let height: u32 = match &scene.height {
+        None => bail!("No height argument supplied"),
+        Some(h) => h.clone(),
+    };
 
     // TODO: determine color values at each pixel
+    let progress = ProgressBar::new((width * height) as u64);
 
-    // TODO: write header to output file
+    let img = RgbImage::from_par_fn(width, height, |x, y| {
+        let color = Vec3::new(0.0, 0.0, 0.0);
+        progress.inc(1);
+        Rgb::from(color.to_rgb())
+    });
 
-    // TODO: write pixels to output file
-    //
+    progress.finish();
+
+    img.save(file_out)
+        .with_context(|| "Failed to save output file")?;
+
     Ok(())
 }

@@ -64,6 +64,15 @@ impl Vec3 {
             z: pixel[2] as f32 / 255.0,
         }
     }
+
+    #[inline]
+    pub fn to_rgb(&self) -> [u8; 3] {
+        [
+            (self.x * 255.0) as u8,
+            (self.y * 255.0) as u8,
+            (self.z * 255.0) as u8,
+        ]
+    }
 }
 
 impl Add for Vec3 {

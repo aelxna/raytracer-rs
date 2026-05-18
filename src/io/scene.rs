@@ -197,8 +197,8 @@ pub struct Scene {
     pub bkgcolor: Option<Vec3>,
     pub eta: Option<f32>,
     pub hfov: Option<f32>,
-    pub width: Option<usize>,
-    pub height: Option<usize>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
 }
 
 impl Scene {
@@ -318,8 +318,8 @@ impl Scene {
                         continue;
                     }
                     "imsize" => {
-                        scene.width = Some(parse!(usize));
-                        scene.height = Some(parse!(usize));
+                        scene.width = Some(parse!(u32));
+                        scene.height = Some(parse!(u32));
                     }
                     _ => continue,
                 },
