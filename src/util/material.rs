@@ -9,14 +9,14 @@ use std::str;
 
 #[derive(Debug, Clone)]
 pub struct Material {
-    diffuse: Vec3,
-    specular: Vec3,
-    ka: f32,
-    kd: f32,
-    ks: f32,
-    exp: f32,
-    alpha: f32,
-    eta: f32,
+    pub diffuse: Vec3,
+    pub specular: Vec3,
+    pub ka: f32,
+    pub kd: f32,
+    pub ks: f32,
+    pub exp: f32,
+    pub alpha: f32,
+    pub eta: f32,
 }
 
 impl Material {

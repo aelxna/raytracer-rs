@@ -177,7 +177,7 @@ fn validate_fields(scene: &Scene) -> bool {
         && scene.up != None
         && scene.bkgcolor != None
         && scene.eta != None
-        && scene.hfov != None
+        && scene.vfov != None
         && scene.width != None
         && scene.height != None
 }
@@ -196,7 +196,7 @@ pub struct Scene {
     pub up: Option<Vec3>,
     pub bkgcolor: Option<Vec3>,
     pub eta: Option<f32>,
-    pub hfov: Option<f32>,
+    pub vfov: Option<f32>,
     pub width: Option<u32>,
     pub height: Option<u32>,
 }
@@ -313,8 +313,8 @@ impl Scene {
                         scene.eta = Some(parse!(f32));
                         continue;
                     }
-                    "hfov" => {
-                        scene.hfov = Some(parse!(f32));
+                    "vfov" => {
+                        scene.vfov = Some(parse!(f32));
                         continue;
                     }
                     "imsize" => {
