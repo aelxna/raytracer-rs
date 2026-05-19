@@ -199,7 +199,43 @@ pub fn shade_ray(
     scene: &Scene,
     acc: usize,
     skip: Option<&Shape>,
-    stack: &Vec<f32>,
+    stack: &mut Vec<f32>,
 ) -> Vec3 {
-    Vec3::new(0.0, 0.0, 0.0)
+    let bkgcolor: Vec3 = scene.bkgcolor.unwrap_or(Vec3::ZERO);
+
+    // cap on how many times reflection can take place
+    if acc > BOUNCES {
+        return bkgcolor;
+    }
+
+    let tr: Trace = trace_ray(r, &scene.shapes, skip, -1.0);
+    let mut illum: Vec3 = Vec3::ZERO;
+    let mut diffuse: Vec3 = Vec3::ZERO;
+    let mut normal: Vec3 = Vec3::ZERO;
+
+    // no intersection
+    if tr.shape == None {
+        return bkgcolor;
+    }
+    let shape: &Shape = tr.shape.unwrap(); // must not be None
+
+    diffuse_normal(&mut diffuse, &mut normal, &mut illum, &tr);
+
+    let p: Vec3 = r.origin + (r.dir * tr.t);
+    let vi: Vec3 = (-r.dir).norm();
+
+    let (eta_i, eta_t) = setup_eta(&mut normal, &vi, shape, stack);
+
+    apply_lighting(
+        &scene.lights,
+        &p,
+        &normal,
+        &vi,
+        &diffuse,
+        shape,
+        &scene.shapes,
+        &mut illum,
+    );
+
+    illum.clamp(0.0, 1.0)
 }

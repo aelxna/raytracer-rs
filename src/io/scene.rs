@@ -8,6 +8,7 @@ use anyhow::{Context, Result, bail};
 use image::{DynamicImage, ImageReader, RgbImage};
 use std::fs;
 use std::str;
+use std::sync::Arc;
 
 fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Triangle> {
     let v1: Vec<&str> = match it.next() {
@@ -187,8 +188,8 @@ pub struct Scene {
     pub normals: Vec<Vec3>,
     pub txcoords: Vec<Vec2>,
     pub shapes: Vec<Shape>,
-    pub materials: Vec<Material>,
-    pub textures: Vec<RgbImage>,
+    pub materials: Vec<Arc<Material>>,
+    pub textures: Vec<Arc<RgbImage>>,
     pub lights: Vec<Light>,
     pub eye: Option<Vec3>,
     pub view: Option<Vec3>,
@@ -278,7 +279,7 @@ impl Scene {
 
                         scene
                             .materials
-                            .push(Material::new(od, os, ka, kd, ks, n, alpha, eta));
+                            .push(Arc::new(Material::new(od, os, ka, kd, ks, n, alpha, eta)));
                         continue;
                     }
                     "texture" => match tokens.next() {
@@ -291,7 +292,7 @@ impl Scene {
                                 .with_context(|| format!("Failed to decode texture {}", f))?;
                             let img: RgbImage = decoded.into_rgb8();
 
-                            scene.textures.push(img);
+                            scene.textures.push(Arc::new(img));
                             continue;
                         }
                     },

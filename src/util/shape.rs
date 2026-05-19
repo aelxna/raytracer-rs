@@ -2,18 +2,19 @@ use crate::util::material::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
 use image::RgbImage;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f32,
-    pub mtl: Material,
-    pub texture: Option<RgbImage>,
+    pub mtl: Arc<Material>,
+    pub texture: Option<Arc<RgbImage>>,
 }
 
 impl Sphere {
     #[inline]
-    pub fn new(c: Vec3, r: f32, mtl: Material, tx: Option<RgbImage>) -> Self {
+    pub fn new(c: Vec3, r: f32, mtl: Arc<Material>, tx: Option<Arc<RgbImage>>) -> Self {
         Self {
             center: c,
             radius: r,
@@ -31,8 +32,8 @@ pub struct Triangle {
     pub e2: Vec3,
     pub snorm: Vec3,
     pub d: f32,
-    pub mtl: Material,
-    pub texture: Option<RgbImage>,
+    pub mtl: Arc<Material>,
+    pub texture: Option<Arc<RgbImage>>,
     pub texcoords: Option<[Vec2; 3]>,
 }
 
@@ -41,8 +42,8 @@ impl Triangle {
     pub fn new(
         v: [Vec3; 3],
         n: Option<[Vec3; 3]>,
-        mtl: Material,
-        tx: Option<RgbImage>,
+        mtl: Arc<Material>,
+        tx: Option<Arc<RgbImage>>,
         tc: Option<[Vec2; 3]>,
     ) -> Self {
         let e1 = v[1] - v[0];
