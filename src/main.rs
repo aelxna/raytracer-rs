@@ -47,11 +47,7 @@ fn main() -> Result<()> {
         stack.push(eta);
 
         // pixels[i] = shade_ray(r, c, 0, NULL, st, debug);
-        let color = Vec3::new(
-            x as f32 / width as f32,
-            (x * y) as f32 / (width * height) as f32,
-            y as f32 / height as f32,
-        );
+        let color = shade_ray(r, &scene, 0, None, &mut stack);
         progress.inc(1);
         Rgb::from(color.to_rgb())
     });

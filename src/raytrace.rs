@@ -1,4 +1,5 @@
 use crate::io::scene::Scene;
+use crate::util::light::*;
 use crate::util::material::*;
 use crate::util::shape::*;
 use crate::util::vec3::*;
@@ -153,4 +154,52 @@ fn trace_ray<'a>(r: Ray3, shapes: &'a Vec<Shape>, skip: Option<&'a Shape>, l: f3
     }
     ret.shape = si;
     ret
+}
+
+#[inline]
+fn diffuse_normal(diffuse: &mut Vec3, normal: &mut Vec3, illum: &mut Vec3, tr: &Trace) -> () {}
+
+#[inline]
+fn setup_eta(normal: &mut Vec3, vi: &Vec3, shape: &Shape, stack: &mut Vec<f32>) -> (f32, f32) {
+    (0.0, 0.0)
+}
+
+#[inline]
+fn apply_lighting(
+    lights: &Vec<Light>,
+    p: &Vec3,
+    normal: &Vec3,
+    vi: &Vec3,
+    diffuse: &Vec3,
+    shape: &Shape,
+    shapes: &Vec<Shape>,
+    illum: &mut Vec3,
+) -> () {
+}
+
+#[inline]
+fn reflections_transparency(
+    p: &Vec3,
+    normal: &Vec3,
+    vi: &Vec3,
+    shape: &Shape,
+    eta_i: f32,
+    eta_t: f32,
+    scene: &Scene,
+    acc: usize,
+    skip: Option<&Shape>,
+    stack: &mut Vec<f32>,
+    illum: &mut f32,
+) -> () {
+}
+
+#[inline]
+pub fn shade_ray(
+    r: Ray3,
+    scene: &Scene,
+    acc: usize,
+    skip: Option<&Shape>,
+    stack: &Vec<f32>,
+) -> Vec3 {
+    Vec3::new(0.0, 0.0, 0.0)
 }

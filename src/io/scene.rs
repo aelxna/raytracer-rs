@@ -7,7 +7,6 @@ use crate::util::vec3::*;
 use anyhow::{Context, Result, bail};
 use image::{DynamicImage, ImageReader, RgbImage};
 use std::fs;
-use std::rc::Rc;
 use std::str;
 
 fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Triangle> {
@@ -188,8 +187,8 @@ pub struct Scene {
     pub normals: Vec<Vec3>,
     pub txcoords: Vec<Vec2>,
     pub shapes: Vec<Shape>,
-    pub materials: Vec<Rc<Material>>,
-    pub textures: Vec<Rc<RgbImage>>,
+    pub materials: Vec<Material>,
+    pub textures: Vec<RgbImage>,
     pub lights: Vec<Light>,
     pub eye: Option<Vec3>,
     pub view: Option<Vec3>,
@@ -279,7 +278,7 @@ impl Scene {
 
                         scene
                             .materials
-                            .push(Rc::new(Material::new(od, os, ka, kd, ks, n, alpha, eta)));
+                            .push(Material::new(od, os, ka, kd, ks, n, alpha, eta));
                         continue;
                     }
                     "texture" => match tokens.next() {
@@ -292,7 +291,7 @@ impl Scene {
                                 .with_context(|| format!("Failed to decode texture {}", f))?;
                             let img: RgbImage = decoded.into_rgb8();
 
-                            scene.textures.push(Rc::new(img));
+                            scene.textures.push(img);
                             continue;
                         }
                     },

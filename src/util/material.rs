@@ -73,6 +73,6 @@ fn bilinear_interpolate(img: &RgbImage, coord: Vec2) -> Result<Vec3> {
 }
 
 #[inline]
-pub fn texture_lookup(img: RgbImage, coord: Vec2) -> Result<Vec3> {
-    bilinear_interpolate(&img, coord)
+pub fn texture_lookup(img: &RgbImage, coord: Vec2) -> Result<Vec3> {
+    bilinear_interpolate(img, coord)
 }
