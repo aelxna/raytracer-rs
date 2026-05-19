@@ -1,6 +1,6 @@
 use crate::raytrace::*;
 use crate::util::vec3::*;
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, anyhow};
 use image::{Rgb, RgbImage};
 use indicatif::ProgressBar;
 use std::env;

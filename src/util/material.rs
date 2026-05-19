@@ -7,7 +7,7 @@ use std::fs;
 use std::rc::Rc;
 use std::str;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Material {
     pub diffuse: Vec3,
     pub specular: Vec3,

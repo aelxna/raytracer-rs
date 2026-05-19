@@ -2,7 +2,7 @@ imsize 1920 1080
 eye -3.5 2.5 0
 viewdir 3 -2 -4
 updir 0 1 0
-hfov 40
+vfov 40
 bkgcolor 1 0 0 1.2
 light 2 -1 -2 0 1
 

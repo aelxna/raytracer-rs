@@ -4,7 +4,7 @@ use crate::util::vec3::*;
 use image::RgbImage;
 use std::rc::Rc;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f32,
@@ -24,7 +24,7 @@ impl Sphere {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Triangle {
     pub vertices: [Vec3; 3],
     pub normals: Option<[Vec3; 3]>,
@@ -65,7 +65,7 @@ impl Triangle {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Shape {
     Sphere(Sphere),
     Triangle(Triangle),
