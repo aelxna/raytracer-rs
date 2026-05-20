@@ -1,11 +1,7 @@
-use crate::io::construct::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use image::RgbImage;
-use std::fs;
-use std::rc::Rc;
-use std::str;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Material {
