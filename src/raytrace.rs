@@ -35,7 +35,7 @@ pub fn image_setup(s: &Scene) -> Result<Dimensions> {
     let d: f32 = 5.0;
     let vfov_rad: f32 = vfov * PI / 180.0;
     let viewport_height: f32 = 2.0 * d * f32::tan(0.5 * vfov_rad);
-    let viewport_width: f32 = height * aspect;
+    let viewport_width: f32 = viewport_height * aspect;
 
     // corners of viewing window
     let center: Vec3 = eye + (viewdir * d);
@@ -94,8 +94,8 @@ fn trace_ray<'a>(r: Ray3, shapes: &'a Vec<Shape>, skip: Option<&'a Shape>, l: f3
                 // do the quadratic formula to find intersection points
                 let discrim: f32 = (b * b) - (4.0 * constant);
                 if discrim >= 0.0 {
-                    t1 = -b + f32::sqrt(discrim) / 2.0;
-                    t2 = -b - f32::sqrt(discrim) / 2.0;
+                    t1 = (-b + f32::sqrt(discrim)) / 2.0;
+                    t2 = (-b - f32::sqrt(discrim)) / 2.0;
                 }
 
                 if (t1 > ERR_BOUND) && (t1 < l) {
@@ -125,7 +125,7 @@ fn trace_ray<'a>(r: Ray3, shapes: &'a Vec<Shape>, skip: Option<&'a Shape>, l: f3
                 let pt: Vec3 = r.origin + (r.dir * t);
                 let ep: Vec3 = pt - tr.vertices[0];
                 let det: f32 =
-                    (tr.e1.sq_mag() * tr.e2.sq_mag()) - (tr.e1.dot(tr.e2) * tr.e1.dot(ep));
+                    (tr.e1.sq_mag() * tr.e2.sq_mag()) - (tr.e1.dot(tr.e2) * tr.e1.dot(tr.e2));
                 if det == 0.0 {
                     continue;
                 }
@@ -190,7 +190,7 @@ fn diffuse_normal(
                 *normal = (*p - s.center).norm();
             }
             Shape::Triangle(t) => {
-                let alpha: f32 = 1.0 - tr.b + tr.g;
+                let alpha: f32 = 1.0 - (tr.b + tr.g);
                 match t.texture.clone() {
                     None => {
                         *diffuse = t.mtl.diffuse;
@@ -300,7 +300,11 @@ fn apply_lighting(
         // check if shadow
         let sr: Ray3 = Ray3::new(*p, l);
 
-        let light_dist: f32 = if light.point { l.mag() } else { f32::MAX };
+        let light_dist: f32 = if light.point {
+            (light.pos - *p).mag()
+        } else {
+            f32::MAX
+        };
 
         // trace ray between p and light
         let st: Trace = trace_ray(sr, shapes, Some(shape), light_dist);

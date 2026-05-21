@@ -285,12 +285,14 @@ impl Scene {
                     "texture" => match tokens.next() {
                         None => continue,
                         Some(f) => {
-                            let img_file = ImageReader::open(f)
-                                .with_context(|| format!("Failed to open texture {}", f))?;
-                            let decoded: DynamicImage = img_file
-                                .decode()
-                                .with_context(|| format!("Failed to decode texture {}", f))?;
-                            let img: RgbImage = decoded.into_rgb8();
+                            let resolved = std::path::Path::new(file_name)
+                                .parent()
+                                .unwrap_or(std::path::Path::new("."))
+                                .join(f);
+
+                            let img = image::open(&resolved)
+                                .with_context(|| format!("Failed to open texture {}", f))?
+                                .into_rgb8();
 
                             scene.textures.push(Arc::new(img));
                             continue;

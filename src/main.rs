@@ -27,7 +27,7 @@ fn main() -> Result<()> {
     // TODO: generate config from lines
     let scene: Scene = Scene::from(file_in)?.clone();
 
-    dbg!(&scene);
+    // dbg!(&scene);
 
     let width: u32 = scene.width.ok_or(anyhow!("No width argument supplied"))?;
     let height: u32 = scene.height.ok_or(anyhow!("No height argument supplied"))?;
@@ -41,7 +41,7 @@ fn main() -> Result<()> {
 
     let img = RgbImage::from_par_fn(width, height, |x, y| {
         // create ray pointing to that pixel
-        let loc: Vec3 = (ds.ul + (ds.dx * (x as f32))) + (ds.dy * (y as f32));
+        let loc: Vec3 = ds.ul + (ds.dx * (x as f32)) + (ds.dy * (y as f32));
         let r: Ray3 = Ray3::new(eye, (loc - eye).norm());
         let mut stack: Vec<f32> = Vec::new();
         stack.push(eta);

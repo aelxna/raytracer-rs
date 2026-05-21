@@ -2,7 +2,7 @@ imsize 1920 1080
 eye -3.5 2.5 0
 viewdir 3 -2 -4
 updir 0 1 0
-vfov 40
+vfov 24
 bkgcolor 1 0 0 1.2
 light 2 -1 -2 0 1
 
@@ -40,6 +40,7 @@ mtlcolor 0 0 0 1 1 1 0.2 0.8 0 100 0 1.5
 sphere 0 0.125 -4.5 0.3
 
 mtlcolor 0 1 0 1 1 1 0.2 0.6 0.2 100 0.2 1.3
+
 
 texture gcn.ppm
 vt 0.21136 0.294756 

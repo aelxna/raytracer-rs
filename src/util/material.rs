@@ -43,8 +43,8 @@ impl Material {
 #[inline]
 fn nearest_neighbor(img: &RgbImage, coord: Vec2) -> Result<Vec3> {
     //
-    let u: u32 = coord.x.floor().abs() as u32;
-    let v: u32 = coord.y.floor().abs() as u32;
+    let u: u32 = coord.x.floor() as u32;
+    let v: u32 = coord.y.floor() as u32;
 
     let pixel = img
         .get_pixel_checked(u, v)
@@ -70,5 +70,9 @@ fn bilinear_interpolate(img: &RgbImage, coord: Vec2) -> Result<Vec3> {
 
 #[inline]
 pub fn texture_lookup(img: &RgbImage, coord: Vec2) -> Result<Vec3> {
-    bilinear_interpolate(img, coord)
+    let scaled: Vec2 = Vec2::new(
+        coord.x * (img.width() as f32 - 1.0),
+        coord.y * (img.height() as f32 - 1.0),
+    );
+    bilinear_interpolate(img, scaled)
 }
