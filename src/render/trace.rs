@@ -76,7 +76,7 @@ pub fn trace_ray<'a>(
                 // find collision with plane
                 let t: f32 = -(tr.snorm.dot(r.origin) + tr.d) / tr.snorm.dot(r.dir);
                 let pt: Vec3 = r.origin + (r.dir * t);
-                let ep: Vec3 = pt - tr.vertices[0];
+                let ep: Vec3 = pt - *(tr.vertices[0]);
                 let det: f32 =
                     (tr.e1.sq_mag() * tr.e2.sq_mag()) - (tr.e1.dot(tr.e2) * tr.e1.dot(tr.e2));
                 if det == 0.0 {

@@ -3,8 +3,9 @@ use crate::render::shade::*;
 use crate::util::vec3::*;
 use anyhow::{Context, Result, anyhow};
 use image::{Rgb, RgbImage};
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 use std::env;
+use std::time::Duration;
 
 use crate::config::scene::*;
 
@@ -38,8 +39,11 @@ fn main() -> Result<()> {
 
     let ds: Dimensions = image_setup(&scene)?;
 
-    // TODO: determine color values at each pixel
-    let progress = ProgressBar::new((width * height) as u64);
+    let style = ProgressStyle::with_template(
+        "[{elapsed}] [{percent}%] {spinner:.magenta} rendering image...",
+    )?;
+    let progress = ProgressBar::new((width * height) as u64).with_style(style);
+    progress.enable_steady_tick(Duration::from_millis(100));
 
     let img = RgbImage::from_par_fn(width, height, |x, y| {
         // create ray pointing to that pixel

@@ -6,6 +6,7 @@ use crate::util::material::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
 use std::f32::consts::PI;
+use std::sync::Arc;
 
 const BOUNCES: usize = 10;
 
@@ -49,7 +50,11 @@ fn diffuse_normal(
                     }
                     Some(tx) => {
                         // replace diffuse with texture lookup
-                        let texcoords = t.texcoords.unwrap_or([Vec2::ZERO, Vec2::ZERO, Vec2::ZERO]);
+                        let texcoords = t.texcoords.clone().unwrap_or([
+                            Arc::new(Vec2::ZERO),
+                            Arc::new(Vec2::ZERO),
+                            Arc::new(Vec2::ZERO),
+                        ]);
                         let coord: Vec2 = Vec2::new(
                             (alpha * texcoords[0].x)
                                 + (tr.b * texcoords[1].x)
@@ -65,11 +70,11 @@ fn diffuse_normal(
 
                 *illum = *diffuse * t.mtl.ka;
 
-                *normal = match t.normals {
+                *normal = match t.normals.clone() {
                     None => t.snorm,
                     Some(normals) => {
                         // smooth shading
-                        ((normals[0] * alpha) + (normals[1] * tr.b) + (normals[2] * tr.g)).norm()
+                        ((*normals[0] * alpha) + (*normals[1] * tr.b) + (*normals[2] * tr.g)).norm()
                     }
                 }
             }
@@ -177,78 +182,49 @@ fn reflections_transparency(
     acc: usize,
     skip: Option<&Shape>,
     stack: &mut Vec<f32>,
-    illum: &mut f32,
+    illum: &mut Vec3,
 ) -> () {
-    // int matte = 0;
-    // float opacity;
-    // if (s != NULL) {
-    //   if (s->mtl.ks == 0)
-    //     matte = 1;
-    //   opacity = s->mtl.alpha;
-    // } else {
-    //   if (t->mtl.ks == 0)
-    //     matte = 1;
-    //   opacity = t->mtl.alpha;
-    // }
-    // if (debug_flag) {
-    //   printf("alpha = %f\n", opacity);
-    // }
-    //
-    // float f0 = powf((eta_t - eta_i) / (eta_t + eta_i), 2);
-    // float fr = f0 + (1 - f0) * powf((1 - dot(vi, normal)), 5);
-    // if (debug_flag) {
-    //   printf("f0 = %f, fr = %f\n", f0, fr);
-    // }
-    //
-    // if (!matte) { // reflections
-    //   ray3_t refr = ray3_new(p, sub(scale(2 * dot(normal, vi), normal), vi));
-    //   vec3_t reflection =
-    //       shade_ray(refr, c, (acc + 1), tr.shape, stack, debug_flag);
-    //
-    //   illum = add(illum, scale(fr, reflection));
-    // }
-    //
-    // if (opacity < 1) { // transparency
-    //   int tir = 0;     // flag for total internal reflection
-    //   float cos_theta_i = dot(normal, vi);
-    //   if (debug_flag) {
-    //     printf("cos_theta_i = %f, eta_t / eta_i = %f\n", cos_theta_i,
-    //            eta_t / eta_i);
-    //   }
-    //
-    //   if ((eta_t / eta_i) < 1) {
-    //     if (debug_flag) {
-    //       printf("Possible tir!!!!!\n");
-    //     }
-    //     float critical = asinf(eta_t / eta_i);
-    //     if (acosf(cos_theta_i) >= critical) { // total internal reflection
-    //       if (debug_flag) {
-    //         printf("tir!!!!! theta_i = %f > critical = %f\n",
-    //                acosf(cos_theta_i), critical);
-    //       }
-    //       tir = 1;
-    //     }
-    //   }
-    //   if (!tir) {
-    //     vec3_t t = normalize(
-    //         add(scale(sqrtf(1.0 - (powf(eta_i / eta_t, 2) *
-    //                                (1.0 - powf(cos_theta_i, 2)))),
-    //                   negate(normal)),
-    //             scale((eta_i / eta_t), sub(scale(cos_theta_i, normal), vi))));
-    //     if (debug_flag) {
-    //       printf("t = <%f, %f, %f>\n", t.x, t.y, t.z);
-    //     }
-    //
-    //     vec3_t transmitted =
-    //         shade_ray(ray3_new(p, t), c, (acc + 1), skip, stack, debug_flag);
-    //     if (debug_flag) {
-    //       printf("transmitted color = <%f, %f, %f>\n", transmitted.x,
-    //              transmitted.y, transmitted.z);
-    //     }
-    //
-    //     illum = add(illum, scale((1.0 - fr) * (1.0 - opacity), transmitted));
-    //   }
-    // }
+    let (matte, opacity): (bool, f32) = match shape {
+        Shape::Sphere(s) => (s.mtl.ks == 0.0, s.mtl.alpha),
+        Shape::Triangle(t) => (t.mtl.ks == 0.0, t.mtl.alpha),
+    };
+    let f0: f32 = f32::powf((eta_t - eta_i) / (eta_t + eta_i), 2.0);
+    let fr: f32 = f0 + (1.0 - f0) * f32::powf(1.0 - vi.dot(normal), 5.0);
+
+    if !matte {
+        // reflections
+        let refr: Ray3 = Ray3::new(p, (normal * (2.0 * normal.dot(vi))) - vi);
+        let reflection: Vec3 = shade_ray(refr, scene, acc + 1, skip, stack);
+
+        *illum = *illum + (reflection * fr);
+    }
+
+    if opacity < 1.0 {
+        // transparency
+        let mut tir = false; // flag for total internal reflection
+        let cos_theta_i: f32 = normal.dot(vi);
+        let eta_ratio: f32 = eta_t / eta_i;
+
+        if (eta_ratio) < 1.0 {
+            // possible tir
+            let critical: f32 = f32::asin(eta_ratio);
+            if f32::acos(cos_theta_i) >= critical {
+                tir = true;
+            }
+        }
+
+        if !tir {
+            let t: Vec3 = ((-normal
+                * (f32::sqrt(
+                    1.0 - (f32::powf(eta_i / eta_t, 2.0) * (1.0 - f32::powf(cos_theta_i, 2.0))),
+                )))
+                + (((normal * cos_theta_i) - vi) * (eta_i / eta_t)))
+                .norm();
+            let transmitted: Vec3 = shade_ray(Ray3::new(p, t), scene, acc + 1, skip, stack);
+
+            *illum = *illum + (transmitted * ((1.0 - fr) * (1.0 - opacity)));
+        }
+    }
 }
 
 #[inline]
@@ -292,6 +268,10 @@ pub fn shade_ray(
         shape,
         &scene.shapes,
         &mut illum,
+    );
+
+    reflections_transparency(
+        p, normal, vi, shape, eta_i, eta_t, scene, acc, skip, stack, &mut illum,
     );
 
     illum.clamp(0.0, 1.0)

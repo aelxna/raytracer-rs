@@ -1,6 +1,8 @@
 use crate::config::construct::*;
 use crate::entities::light::*;
 use crate::entities::shape::*;
+use crate::entities::sphere::*;
+use crate::entities::triangle::*;
 use crate::util::material::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
@@ -36,7 +38,7 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
 
         let vi: [usize; 3] = [v1[0].parse::<usize>()? - 1, parse!(it) - 1, parse!(it) - 1];
 
-        let vertices: [Vec3; 3] = vi.map(|i| unwrap!(scene.vertices, i));
+        let vertices: [Arc<Vec3>; 3] = vi.map(|i| unwrap!(scene.vertices, i));
 
         let mtl = match scene.materials.last() {
             None => bail!("Defined triangle without first defining material"),
@@ -69,13 +71,13 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
         let vi3 = v3[0].parse::<usize>()? - 1;
         let vt3 = v3[1].parse::<usize>()? - 1;
 
-        let vertices: [Vec3; 3] = [
+        let vertices: [Arc<Vec3>; 3] = [
             unwrap!(scene.vertices, vi1),
             unwrap!(scene.vertices, vi2),
             unwrap!(scene.vertices, vi3),
         ];
 
-        let vt: [Vec2; 3] = [
+        let vt: [Arc<Vec2>; 3] = [
             unwrap!(scene.txcoords, vt1),
             unwrap!(scene.txcoords, vt2),
             unwrap!(scene.txcoords, vt3),
@@ -126,13 +128,13 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
         let vi3 = v3[0].parse::<usize>()? - 1;
         let vn3 = v3[2].parse::<usize>()? - 1;
 
-        let vertices: [Vec3; 3] = [
+        let vertices: [Arc<Vec3>; 3] = [
             unwrap!(scene.vertices, vi1),
             unwrap!(scene.vertices, vi2),
             unwrap!(scene.vertices, vi3),
         ];
 
-        let vn: [Vec3; 3] = [
+        let vn: [Arc<Vec3>; 3] = [
             unwrap!(scene.normals, vn1),
             unwrap!(scene.normals, vn2),
             unwrap!(scene.normals, vn3),
@@ -159,7 +161,7 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
                 v3[1].parse::<usize>()? - 1,
             ];
 
-            let vt: [Vec2; 3] = vti.map(|i| unwrap!(scene.txcoords, i));
+            let vt: [Arc<Vec2>; 3] = vti.map(|i| unwrap!(scene.txcoords, i));
 
             Ok(Triangle::new(vertices, Some(vn), mtl, Some(tx), Some(vt)))
         } else {
@@ -184,9 +186,9 @@ fn validate_fields(scene: &Scene) -> bool {
 
 #[derive(Debug, Clone, Default)]
 pub struct Scene {
-    pub vertices: Vec<Vec3>,
-    pub normals: Vec<Vec3>,
-    pub txcoords: Vec<Vec2>,
+    pub vertices: Vec<Arc<Vec3>>,
+    pub normals: Vec<Arc<Vec3>>,
+    pub txcoords: Vec<Arc<Vec2>>,
     pub shapes: Vec<Shape>,
     pub materials: Vec<Arc<Material>>,
     pub textures: Vec<Arc<RgbImage>>,
@@ -227,15 +229,15 @@ impl Scene {
                 None => continue,
                 Some(s) => match s.as_ref() {
                     "v" => {
-                        scene.vertices.push(parse!(Vec3));
+                        scene.vertices.push(Arc::new(parse!(Vec3)));
                         continue;
                     }
                     "vt" => {
-                        scene.txcoords.push(parse!(Vec2));
+                        scene.txcoords.push(Arc::new(parse!(Vec2)));
                         continue;
                     }
                     "vn" => {
-                        scene.normals.push(parse!(Vec3));
+                        scene.normals.push(Arc::new(parse!(Vec3)));
                         continue;
                     }
                     "f" => {
