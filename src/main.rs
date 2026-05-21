@@ -1,14 +1,16 @@
-use crate::raytrace::*;
+use crate::render::setup::*;
+use crate::render::shade::*;
 use crate::util::vec3::*;
 use anyhow::{Context, Result, anyhow};
 use image::{Rgb, RgbImage};
 use indicatif::ProgressBar;
 use std::env;
 
-use crate::io::scene::*;
+use crate::config::scene::*;
 
-pub mod io;
-pub mod raytrace;
+pub mod config;
+pub mod entities;
+pub mod render;
 pub mod util;
 
 fn main() -> Result<()> {
@@ -42,7 +44,7 @@ fn main() -> Result<()> {
     let img = RgbImage::from_par_fn(width, height, |x, y| {
         // create ray pointing to that pixel
         let loc: Vec3 = ds.ul + (ds.dx * (x as f32)) + (ds.dy * (y as f32));
-        let r: Ray3 = Ray3::new(eye, (loc - eye).norm());
+        let r: Ray3 = Ray3::new(eye + ((loc - eye) * 0.01), (loc - eye).norm());
         let mut stack: Vec<f32> = Vec::new();
         stack.push(eta);
 

@@ -43,8 +43,8 @@ impl Material {
 #[inline]
 fn nearest_neighbor(img: &RgbImage, coord: Vec2) -> Result<Vec3> {
     //
-    let u: u32 = coord.x.floor() as u32;
-    let v: u32 = coord.y.floor() as u32;
+    let u: u32 = coord.x as u32;
+    let v: u32 = coord.y as u32;
 
     let pixel = img
         .get_pixel_checked(u, v)

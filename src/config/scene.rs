@@ -1,11 +1,11 @@
-use crate::io::construct::*;
-use crate::util::light::*;
+use crate::config::construct::*;
+use crate::entities::light::*;
+use crate::entities::shape::*;
 use crate::util::material::*;
-use crate::util::shape::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
 use anyhow::{Context, Result, bail};
-use image::{DynamicImage, ImageReader, RgbImage};
+use image::RgbImage;
 use std::fs;
 use std::str;
 use std::sync::Arc;
