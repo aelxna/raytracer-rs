@@ -3,9 +3,11 @@ use crate::entities::light::*;
 use crate::entities::shape::*;
 use crate::entities::sphere::*;
 use crate::entities::triangle::*;
+use crate::util::mat4::*;
 use crate::util::material::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
+use crate::util::vec4::*;
 use anyhow::{Context, Result, bail};
 use image::RgbImage;
 use std::fs;
@@ -172,6 +174,19 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
     }
 }
 
+#[inline]
+fn make_transformation_matrices(eye: Vec3, view: Vec3, up: Vec3) -> (Mat4, Mat4) {
+    let r = view.cross(up).norm();
+    let u = r.cross(view).norm();
+
+    let a = Vec4::from_vec3(r, r.dot(-eye));
+    let b = Vec4::from_vec3(u, u.dot(-eye));
+    let c = Vec4::from_vec3(-view, view.dot(eye));
+    let d = Vec4::new(0.0, 0.0, 0.0, 1.0);
+
+    (mat4_rows(a, b, c, d), mat4_cols(a, b, c, d))
+}
+
 #[derive(Debug, Clone)]
 pub struct Scene {
     pub vertices: Vec<Arc<Vec3>>,
@@ -189,6 +204,8 @@ pub struct Scene {
     pub vfov: f32,
     pub width: u32,
     pub height: u32,
+    pub to_camera_space: Mat4,
+    pub to_world_space: Mat4,
 }
 
 impl Scene {
@@ -209,6 +226,8 @@ impl Scene {
             vfov: 50.0,
             width: 1,
             height: 1,
+            to_camera_space: MAT4_ZERO,
+            to_world_space: MAT4_ZERO,
         };
 
         let fp = fs::read_to_string(file_name).expect("Failed to read input file");
@@ -334,6 +353,8 @@ impl Scene {
             }
         }
 
+        (scene.to_camera_space, scene.to_world_space) =
+            make_transformation_matrices(scene.eye, scene.view, scene.up);
         Ok(scene)
     }
 }
