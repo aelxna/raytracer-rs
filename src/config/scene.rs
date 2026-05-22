@@ -78,9 +78,9 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
         ];
 
         let vt: [Arc<Vec2>; 3] = [
-            unwrap!(scene.txcoords, vt1),
-            unwrap!(scene.txcoords, vt2),
-            unwrap!(scene.txcoords, vt3),
+            unwrap!(scene.texcoords, vt1),
+            unwrap!(scene.texcoords, vt2),
+            unwrap!(scene.texcoords, vt3),
         ];
 
         let mtl = match scene.materials.last() {
@@ -161,7 +161,7 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
                 v3[1].parse::<usize>()? - 1,
             ];
 
-            let vt: [Arc<Vec2>; 3] = vti.map(|i| unwrap!(scene.txcoords, i));
+            let vt: [Arc<Vec2>; 3] = vti.map(|i| unwrap!(scene.texcoords, i));
 
             Ok(Triangle::new(vertices, Some(vn), mtl, Some(tx), Some(vt)))
         } else {
@@ -172,40 +172,44 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
     }
 }
 
-fn validate_fields(scene: &Scene) -> bool {
-    scene.materials.len() > 0
-        && scene.eye != None
-        && scene.view != None
-        && scene.up != None
-        && scene.bkgcolor != None
-        && scene.eta != None
-        && scene.vfov != None
-        && scene.width != None
-        && scene.height != None
-}
-
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Scene {
     pub vertices: Vec<Arc<Vec3>>,
     pub normals: Vec<Arc<Vec3>>,
-    pub txcoords: Vec<Arc<Vec2>>,
+    pub texcoords: Vec<Arc<Vec2>>,
     pub shapes: Vec<Shape>,
     pub materials: Vec<Arc<Material>>,
     pub textures: Vec<Arc<RgbImage>>,
     pub lights: Vec<Light>,
-    pub eye: Option<Vec3>,
-    pub view: Option<Vec3>,
-    pub up: Option<Vec3>,
-    pub bkgcolor: Option<Vec3>,
-    pub eta: Option<f32>,
-    pub vfov: Option<f32>,
-    pub width: Option<u32>,
-    pub height: Option<u32>,
+    pub eye: Vec3,
+    pub view: Vec3,
+    pub up: Vec3,
+    pub bkgcolor: Vec3,
+    pub eta: f32,
+    pub vfov: f32,
+    pub width: u32,
+    pub height: u32,
 }
 
 impl Scene {
     pub fn from(file_name: &str) -> Result<Self> {
-        let mut scene: Self = Default::default();
+        let mut scene: Self = Self {
+            vertices: Vec::new(),
+            normals: Vec::new(),
+            texcoords: Vec::new(),
+            shapes: Vec::new(),
+            materials: Vec::new(),
+            textures: Vec::new(),
+            lights: Vec::new(),
+            eye: Vec3::ZERO,
+            view: Vec3::new(0.0, 0.0, -1.0),
+            up: Vec3::new(0.0, 1.0, 0.0),
+            bkgcolor: Vec3::ZERO,
+            eta: 1.0,
+            vfov: 50.0,
+            width: 1,
+            height: 1,
+        };
 
         let fp = fs::read_to_string(file_name).expect("Failed to read input file");
         let lines: Vec<&str> = fp.split('\n').collect();
@@ -233,7 +237,7 @@ impl Scene {
                         continue;
                     }
                     "vt" => {
-                        scene.txcoords.push(Arc::new(parse!(Vec2)));
+                        scene.texcoords.push(Arc::new(parse!(Vec2)));
                         continue;
                     }
                     "vn" => {
@@ -301,39 +305,35 @@ impl Scene {
                         }
                     },
                     "eye" => {
-                        scene.eye = Some(parse!(Vec3));
+                        scene.eye = parse!(Vec3);
                         continue;
                     }
                     "viewdir" => {
-                        scene.view = Some(parse!(Vec3).norm());
+                        scene.view = parse!(Vec3).norm();
                         continue;
                     }
                     "updir" => {
-                        scene.up = Some(parse!(Vec3).norm());
+                        scene.up = parse!(Vec3).norm();
                         continue;
                     }
                     "bkgcolor" => {
-                        scene.bkgcolor = Some(parse!(Vec3).clamp(0.0, 1.0));
-                        scene.eta = Some(parse!(f32));
+                        scene.bkgcolor = parse!(Vec3).clamp(0.0, 1.0);
+                        scene.eta = parse!(f32);
                         continue;
                     }
                     "vfov" => {
-                        scene.vfov = Some(parse!(f32));
+                        scene.vfov = parse!(f32);
                         continue;
                     }
                     "imsize" => {
-                        scene.width = Some(parse!(u32));
-                        scene.height = Some(parse!(u32));
+                        scene.width = parse!(u32);
+                        scene.height = parse!(u32);
                     }
                     _ => continue,
                 },
             }
         }
 
-        if validate_fields(&scene) {
-            Ok(scene)
-        } else {
-            bail!("wehh")
-        }
+        Ok(scene)
     }
 }

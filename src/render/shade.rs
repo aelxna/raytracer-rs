@@ -235,7 +235,7 @@ pub fn shade_ray(
     skip: Option<&Shape>,
     stack: &mut Vec<f32>,
 ) -> Vec3 {
-    let bkgcolor: Vec3 = scene.bkgcolor.unwrap_or(Vec3::ZERO);
+    let bkgcolor: Vec3 = scene.bkgcolor;
 
     // cap on how many times reflection can take place
     if acc >= BOUNCES {
@@ -257,7 +257,7 @@ pub fn shade_ray(
 
     diffuse_normal(&mut diffuse, &mut normal, &mut illum, p, &tr);
 
-    let (eta_i, eta_t) = setup_eta(&mut normal, vi, shape, stack, scene.eta.unwrap_or(1.0));
+    let (eta_i, eta_t) = setup_eta(&mut normal, vi, shape, stack, scene.eta);
 
     apply_lighting(
         &scene.lights,

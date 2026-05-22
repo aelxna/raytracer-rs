@@ -1,6 +1,6 @@
 use crate::config::scene::*;
 use crate::util::vec3::*;
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use std::f32::consts::PI;
 
 pub struct Dimensions {
@@ -13,25 +13,21 @@ pub struct Dimensions {
 
 #[inline]
 pub fn image_setup(s: &Scene) -> Result<Dimensions> {
-    let viewdir: Vec3 = s.view.ok_or(anyhow!("Failed to retrieve viewdir"))?;
-    let updir: Vec3 = s.up.ok_or(anyhow!("Failed to retrieve updir"))?;
-    let eye: Vec3 = s.eye.ok_or(anyhow!("Failed to retrieve eye"))?;
-    let width: f32 = s.width.ok_or(anyhow!("Failed to retrieve width"))? as f32;
-    let height: f32 = s.height.ok_or(anyhow!("Failed to retrieve height"))? as f32;
-    let vfov: f32 = s.vfov.ok_or(anyhow!("Failed to retrieve fov"))?;
+    let width = s.width as f32;
+    let height = s.height as f32;
 
-    let u: Vec3 = viewdir.cross(updir).norm();
-    let v: Vec3 = u.cross(viewdir).norm();
+    let u: Vec3 = s.view.cross(s.up).norm();
+    let v: Vec3 = u.cross(s.view).norm();
 
     // width and height of viewing window
     let aspect: f32 = width / height;
     let d: f32 = 5.0;
-    let vfov_rad: f32 = vfov * PI / 180.0;
+    let vfov_rad: f32 = s.vfov * PI / 180.0;
     let viewport_height: f32 = 2.0 * d * f32::tan(0.5 * vfov_rad);
     let viewport_width: f32 = viewport_height * aspect;
 
     // corners of viewing window
-    let center: Vec3 = eye + (viewdir * d);
+    let center: Vec3 = s.eye + (s.view * d);
     let ul: Vec3 = (center + (u * (-0.5 * viewport_width))) + (v * (0.5 * viewport_height));
     let ur: Vec3 = (center + (u * (0.5 * viewport_width))) + (v * (0.5 * viewport_height));
     let ll: Vec3 = (center + (u * (-0.5 * viewport_width))) + (v * (-0.5 * viewport_height));
