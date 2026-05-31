@@ -47,7 +47,7 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
             Some(r) => r.clone(),
         };
 
-        Ok(Triangle::new(vertices, None, mtl, None, None))
+        Ok(Triangle::new(TriNormMode::Flat, vertices, mtl, None, None))
     } else if v1.len() == 2 {
         // + txcoords
 
@@ -91,13 +91,16 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
         };
 
         let tx = match scene.textures.last() {
-            None => {
-                bail!("Defined triangle with texture coordinates without first defining texture")
-            }
-            Some(r) => r.clone(),
+            None => None,
+            Some(r) => Some(r.clone()),
         };
 
-        Ok(Triangle::new(vertices, None, mtl, Some(tx), Some(vt)))
+        let mode = match scene.normalmaps.last() {
+            None => TriNormMode::Flat,
+            Some(r) => TriNormMode::Map(r.clone()),
+        };
+
+        Ok(Triangle::new(mode, vertices, mtl, tx, Some(vt)))
     } else if v1.len() == 3 {
         // + txcoords and normals
 
@@ -149,12 +152,8 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
 
         if use_tx {
             let tx = match scene.textures.last() {
-                None => {
-                    bail!(
-                        "Defined triangle with texture coordinates without first defining texture"
-                    )
-                }
-                Some(r) => r.clone(),
+                None => None,
+                Some(r) => Some(r.clone()),
             };
 
             let vti: [usize; 3] = [
@@ -165,9 +164,21 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
 
             let vt: [Arc<Vec2>; 3] = vti.map(|i| unwrap!(scene.texcoords, i));
 
-            Ok(Triangle::new(vertices, Some(vn), mtl, Some(tx), Some(vt)))
+            Ok(Triangle::new(
+                TriNormMode::Smooth(Vec::from(&vn)),
+                vertices,
+                mtl,
+                tx,
+                Some(vt),
+            ))
         } else {
-            Ok(Triangle::new(vertices, Some(vn), mtl, None, None))
+            Ok(Triangle::new(
+                TriNormMode::Smooth(Vec::from(&vn)),
+                vertices,
+                mtl,
+                None,
+                None,
+            ))
         }
     } else {
         bail!("Incorrect format for triangle")
@@ -195,6 +206,7 @@ pub struct Scene {
     pub shapes: Vec<Shape>,
     pub materials: Vec<Arc<Material>>,
     pub textures: Vec<Arc<RgbImage>>,
+    pub normalmaps: Vec<Arc<RgbImage>>,
     pub lights: Vec<Light>,
     pub eye: Vec3,
     pub view: Vec3,
@@ -204,8 +216,8 @@ pub struct Scene {
     pub vfov: f32,
     pub width: u32,
     pub height: u32,
-    pub to_camera_space: Mat4,
-    pub to_world_space: Mat4,
+    pub world_to_camera: Mat4,
+    pub camera_to_world: Mat4,
 }
 
 impl Scene {
@@ -217,6 +229,7 @@ impl Scene {
             shapes: Vec::new(),
             materials: Vec::new(),
             textures: Vec::new(),
+            normalmaps: Vec::new(),
             lights: Vec::new(),
             eye: Vec3::ZERO,
             view: Vec3::new(0.0, 0.0, -1.0),
@@ -226,8 +239,8 @@ impl Scene {
             vfov: 50.0,
             width: 1,
             height: 1,
-            to_camera_space: MAT4_ZERO,
-            to_world_space: MAT4_ZERO,
+            world_to_camera: MAT4_ZERO,
+            camera_to_world: MAT4_ZERO,
         };
 
         let fp = fs::read_to_string(file_name).expect("Failed to read input file");
@@ -323,6 +336,22 @@ impl Scene {
                             continue;
                         }
                     },
+                    "norm" => match tokens.next() {
+                        None => continue,
+                        Some(f) => {
+                            let resolved = std::path::Path::new(file_name)
+                                .parent()
+                                .unwrap_or(std::path::Path::new("."))
+                                .join(f);
+
+                            let img = image::open(&resolved)
+                                .with_context(|| format!("Failed to open texture {}", f))?
+                                .into_rgb8();
+
+                            scene.normalmaps.push(Arc::new(img));
+                            continue;
+                        }
+                    },
                     "eye" => {
                         scene.eye = parse!(Vec3);
                         continue;
@@ -353,8 +382,13 @@ impl Scene {
             }
         }
 
-        (scene.to_camera_space, scene.to_world_space) =
-            make_transformation_matrices(scene.eye, scene.view, scene.up);
+        // (scene.world_to_camera, scene.camera_to_world) =
+        //     make_transformation_matrices(scene.eye, scene.view, scene.up);
+
+        // TODO: for each shape:
+        // sphere -> convert center to camera space, place into boxes based on +- radius in x and y
+        // triangle ->
+
         Ok(scene)
     }
 }

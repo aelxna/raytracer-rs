@@ -1,6 +1,7 @@
 use crate::config::scene::Scene;
 use crate::entities::light::*;
 use crate::entities::shape::*;
+use crate::entities::triangle::TriNormMode;
 use crate::render::trace::*;
 use crate::util::material::*;
 use crate::util::vec2::*;
@@ -44,24 +45,25 @@ fn diffuse_normal(
             }
             Shape::Triangle(t) => {
                 let alpha: f32 = 1.0 - (tr.b + tr.g);
+                let mut coord = Vec2::ZERO;
                 match t.texture.clone() {
                     None => {
                         *diffuse = t.mtl.diffuse;
                     }
                     Some(tx) => {
                         // replace diffuse with texture lookup
-                        let texcoords = t.texcoords.clone().unwrap_or([
+                        let txcoords = t.txcoords.clone().unwrap_or([
                             Arc::new(Vec2::ZERO),
                             Arc::new(Vec2::ZERO),
                             Arc::new(Vec2::ZERO),
                         ]);
-                        let coord: Vec2 = Vec2::new(
-                            (alpha * texcoords[0].x)
-                                + (tr.b * texcoords[1].x)
-                                + (tr.g * texcoords[2].x),
-                            (alpha * texcoords[0].y)
-                                + (tr.b * texcoords[1].y)
-                                + (tr.g * texcoords[2].y),
+                        coord = Vec2::new(
+                            (alpha * txcoords[0].x)
+                                + (tr.b * txcoords[1].x)
+                                + (tr.g * txcoords[2].x),
+                            (alpha * txcoords[0].y)
+                                + (tr.b * txcoords[1].y)
+                                + (tr.g * txcoords[2].y),
                         );
 
                         *diffuse = texture_lookup(&tx, coord).unwrap_or(Vec3::ZERO);
@@ -70,11 +72,18 @@ fn diffuse_normal(
 
                 *illum = *diffuse * t.mtl.ka;
 
-                *normal = match t.normals.clone() {
-                    None => t.snorm,
-                    Some(normals) => {
+                *normal = match &t.mode {
+                    TriNormMode::Flat => t.snorm,
+                    TriNormMode::Smooth(normals) => {
                         // smooth shading
                         ((*normals[0] * alpha) + (*normals[1] * tr.b) + (*normals[2] * tr.g)).norm()
+                    }
+                    TriNormMode::Map(norm) => {
+                        // normal mapping
+                        texture_lookup(&norm, coord)
+                            .unwrap_or(Vec3::new(0.0, 1.0, 0.0))
+                            .norm()
+                            .transform(t.tbn)
                     }
                 }
             }

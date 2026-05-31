@@ -1,3 +1,4 @@
+use crate::util::mat3::*;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -17,6 +18,15 @@ impl Vec3 {
     #[inline]
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x: x, y: y, z: z }
+    }
+
+    #[inline]
+    pub fn from(arr: [f32; 3]) -> Self {
+        Self {
+            x: arr[0],
+            y: arr[1],
+            z: arr[2],
+        }
     }
 
     #[inline]
@@ -46,6 +56,15 @@ impl Vec3 {
     #[inline]
     pub fn norm(&self) -> Self {
         *self / self.mag()
+    }
+
+    #[inline]
+    pub fn transform(&self, m: Mat3) -> Self {
+        Self {
+            x: Self::from(m[0]).dot(self.clone()),
+            y: Self::from(m[1]).dot(self.clone()),
+            z: Self::from(m[2]).dot(self.clone()),
+        }
     }
 
     #[inline]
