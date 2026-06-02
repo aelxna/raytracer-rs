@@ -20,7 +20,8 @@ Additionally, the following optional inputs can be included:
 mtlcolor <Odr> <Odg> <Odb> <Osr> <Osg> <Osb> <ka> <kd> <ks> <n> <alpha> <eta>
 light <x> <y> <z> <w> <i>
 sphere <x> <y> <z> <r>
-texture <file.ppm>
+texture <image file>
+norm <image file>
 vt <u> <v>
 ```
 Defining `mtlcolor` will affect the color of all objects defined afterwards. 
@@ -28,8 +29,7 @@ So, to have objects with differing colors, `mtlcolor` can be defined between the
 It takes as parameters the diffuse color, the specular highlight color, the coefficients for the ambient, diffuse, and specular components, and the specular exponent.
 
 Similarly to `mtlcolor`, a texture will apply to all subsequent objects defined afterwards.
-It will search for the texture file **relative to the project root directory**. 
-As such, a texture found in a texture/ directory must use `texture/file.ppm` to import it.
+It will search for the texture file in `./textures`. 
 
 The `alpha` and `eta` parameters indicate the level of transparency and the index of refraction, respectively.
 
