@@ -294,7 +294,14 @@ impl Scene {
                             Some(t) => Some(t.clone()),
                         };
 
-                        scene.shapes.push(Shape::Sphere(Sphere::new(c, r, mtl, tx)));
+                        let mode = match (&tx, scene.normalmaps.last()) {
+                            (Some(_), Some(m)) => SphNormMode::Map(m.clone()),
+                            (_, _) => SphNormMode::Flat,
+                        };
+
+                        scene
+                            .shapes
+                            .push(Shape::Sphere(Sphere::new(mode, c, r, mtl, tx)));
                         continue;
                     }
                     "light" => {

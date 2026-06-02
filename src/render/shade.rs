@@ -1,8 +1,10 @@
 use crate::config::scene::Scene;
 use crate::entities::light::*;
 use crate::entities::shape::*;
+use crate::entities::sphere::SphNormMode;
 use crate::entities::triangle::TriNormMode;
 use crate::render::trace::*;
+use crate::util::mat3::*;
 use crate::util::material::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
@@ -22,6 +24,7 @@ fn diffuse_normal(
     match tr.shape {
         Some(sh) => match sh {
             Shape::Sphere(s) => {
+                let mut coord = Vec2::ZERO;
                 match s.texture.clone() {
                     None => {
                         *diffuse = s.mtl.diffuse;
@@ -34,14 +37,27 @@ fn diffuse_normal(
                         if theta < 0.0 {
                             theta += 2.0 * PI;
                         }
-                        let coord: Vec2 = Vec2::new(theta / (2.0 * PI), phi / PI);
+                        coord = Vec2::new(theta / (2.0 * PI), phi / PI);
 
                         *diffuse = texture_lookup(&tx, coord).unwrap_or(Vec3::ZERO);
                     }
                 }
 
                 *illum = *diffuse * s.mtl.ka;
-                *normal = (p - s.center).norm();
+                *normal = match &s.mode {
+                    SphNormMode::Flat => (p - s.center).norm(),
+                    SphNormMode::Map(m) => {
+                        let n = (p - s.center).norm();
+                        let t = Vec3::new(-n.z, 0.0, n.x).norm();
+                        let b = n.cross(t);
+                        let tbn = mat3_rows(t, b, n);
+
+                        texture_lookup(&m, coord)
+                            .unwrap_or(Vec3::new(0.0, 1.0, 0.0))
+                            .norm()
+                            .transform(tbn)
+                    }
+                };
             }
             Shape::Triangle(t) => {
                 let alpha: f32 = 1.0 - (tr.b + tr.g);
