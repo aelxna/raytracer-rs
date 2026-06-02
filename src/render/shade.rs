@@ -32,8 +32,8 @@ fn diffuse_normal(
                     Some(tx) => {
                         // replace diffuse with texture lookup
                         let sphere_norm: Vec3 = (p - s.center) * (1.0 / s.radius);
-                        let phi: f32 = f32::acos(sphere_norm.z);
-                        let mut theta: f32 = f32::atan2(sphere_norm.y, sphere_norm.x);
+                        let phi: f32 = f32::acos(sphere_norm.y);
+                        let mut theta: f32 = f32::atan2(sphere_norm.z, sphere_norm.x);
                         if theta < 0.0 {
                             theta += 2.0 * PI;
                         }

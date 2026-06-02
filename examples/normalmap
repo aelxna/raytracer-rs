@@ -1,0 +1,16 @@
+imsize 1920 1080
+eye 0 0 0
+viewdir 0 0 -1
+vfov 40
+updir 0 1 0
+bkgcolor 0.141176471 0.152941176 0.22745098 1
+
+texture greybrickwall000.png
+mtlcolor 0 0 0 1 1 1 0.2 0.4 0.4 100 1 1.5
+sphere -3 0 -12 2.5
+
+norm ft_stone01_n.png
+mtlcolor 0 0 0 1 1 1 0.2 0.4 0.4 100 1 1.5
+sphere 3 0 -12 2.5
+
+light 0 0 -9 1 1

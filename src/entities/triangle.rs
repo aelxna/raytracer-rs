@@ -46,7 +46,7 @@ impl Triangle {
                 let deltauv1 = *c[1] - *c[0];
                 let deltauv2 = *c[2] - *c[0];
 
-                let f: f32 = 1.0 / (deltauv1.x * deltauv1.y - deltauv2.x * deltauv2.y);
+                let f: f32 = 1.0 / (deltauv1.x * deltauv2.y - deltauv2.x * deltauv1.y);
 
                 let t: Vec3 = Vec3::new(
                     f * (deltauv2.y * e1.x - deltauv1.y * e2.x),

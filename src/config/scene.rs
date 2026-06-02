@@ -330,10 +330,9 @@ impl Scene {
                     "texture" => match tokens.next() {
                         None => continue,
                         Some(f) => {
-                            let resolved = std::path::Path::new(file_name)
-                                .parent()
-                                .unwrap_or(std::path::Path::new("."))
-                                .join(f);
+                            let resolved = std::path::Path::new("./textures").join(f);
+
+                            dbg!(&resolved);
 
                             let img = image::open(&resolved)
                                 .with_context(|| format!("Failed to open texture {}", f))?
@@ -346,10 +345,7 @@ impl Scene {
                     "norm" => match tokens.next() {
                         None => continue,
                         Some(f) => {
-                            let resolved = std::path::Path::new(file_name)
-                                .parent()
-                                .unwrap_or(std::path::Path::new("."))
-                                .join(f);
+                            let resolved = std::path::Path::new("./textures").join(f);
 
                             let img = image::open(&resolved)
                                 .with_context(|| format!("Failed to open texture {}", f))?
