@@ -23,7 +23,7 @@ fn diffuse_normal(
     tr: &Trace,
 ) -> () {
     match &tr.shape {
-        Some(sh) => match &**sh {
+        Some(sh) => match sh {
             Shape::Sphere(s) => {
                 let mut coord = Vec2::ZERO;
                 match s.texture.clone() {
@@ -284,7 +284,7 @@ pub fn shade_ray(
     diffuse_normal(&mut diffuse, &mut normal, &mut illum, p, &tr);
     let shape: &Shape = tr.shape.unwrap(); // must not be None
 
-    let (eta_i, eta_t) = setup_eta(&mut normal, vi, &*shape, stack, scene.eta);
+    let (eta_i, eta_t) = setup_eta(&mut normal, vi, shape, stack, scene.eta);
 
     apply_lighting(
         &scene.lights,
@@ -292,7 +292,7 @@ pub fn shade_ray(
         normal,
         vi,
         diffuse,
-        &*shape,
+        shape,
         &scene.bspheres,
         &scene.shapes,
         &mut illum,
