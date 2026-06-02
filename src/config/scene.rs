@@ -1,13 +1,14 @@
 use crate::config::construct::*;
+use crate::entities::bsphere::*;
 use crate::entities::light::*;
+use crate::entities::shape::sphere::*;
+use crate::entities::shape::triangle::*;
 use crate::entities::shape::*;
-use crate::entities::sphere::*;
-use crate::entities::triangle::*;
-use crate::util::mat4::*;
+// use crate::util::mat4::*;
 use crate::util::material::*;
 use crate::util::vec2::*;
 use crate::util::vec3::*;
-use crate::util::vec4::*;
+// use crate::util::vec4::*;
 use anyhow::{Context, Result, bail};
 use image::RgbImage;
 use std::fs;
@@ -185,29 +186,30 @@ fn parse_triangle(scene: &Scene, it: &mut str::SplitWhitespace<'_>) -> Result<Tr
     }
 }
 
-#[inline]
-fn make_transformation_matrices(eye: Vec3, view: Vec3, up: Vec3) -> (Mat4, Mat4) {
-    let r = view.cross(up).norm();
-    let u = r.cross(view).norm();
-
-    let a = Vec4::from_vec3(r, r.dot(-eye));
-    let b = Vec4::from_vec3(u, u.dot(-eye));
-    let c = Vec4::from_vec3(-view, view.dot(eye));
-    let d = Vec4::new(0.0, 0.0, 0.0, 1.0);
-
-    (mat4_rows(a, b, c, d), mat4_cols(a, b, c, d))
-}
+// #[inline]
+// fn make_transformation_matrices(eye: Vec3, view: Vec3, up: Vec3) -> (Mat4, Mat4) {
+//     let r = view.cross(up).norm();
+//     let u = r.cross(view).norm();
+//
+//     let a = Vec4::from_vec3(r, r.dot(-eye));
+//     let b = Vec4::from_vec3(u, u.dot(-eye));
+//     let c = Vec4::from_vec3(-view, view.dot(eye));
+//     let d = Vec4::new(0.0, 0.0, 0.0, 1.0);
+//
+//     (mat4_rows(a, b, c, d), mat4_cols(a, b, c, d))
+// }
 
 #[derive(Debug, Clone)]
 pub struct Scene {
     pub vertices: Vec<Arc<Vec3>>,
     pub normals: Vec<Arc<Vec3>>,
     pub texcoords: Vec<Arc<Vec2>>,
-    pub shapes: Vec<Shape>,
     pub materials: Vec<Arc<Material>>,
     pub textures: Vec<Arc<RgbImage>>,
     pub normalmaps: Vec<Arc<RgbImage>>,
     pub lights: Vec<Light>,
+    pub shapes: Vec<Shape>,
+    pub bspheres: Vec<BoundingSphere>,
     pub eye: Vec3,
     pub view: Vec3,
     pub up: Vec3,
@@ -216,8 +218,8 @@ pub struct Scene {
     pub vfov: f32,
     pub width: u32,
     pub height: u32,
-    pub world_to_camera: Mat4,
-    pub camera_to_world: Mat4,
+    // pub world_to_camera: Mat4,
+    // pub camera_to_world: Mat4,
 }
 
 impl Scene {
@@ -226,11 +228,12 @@ impl Scene {
             vertices: Vec::new(),
             normals: Vec::new(),
             texcoords: Vec::new(),
-            shapes: Vec::new(),
             materials: Vec::new(),
             textures: Vec::new(),
             normalmaps: Vec::new(),
             lights: Vec::new(),
+            shapes: Vec::new(),
+            bspheres: Vec::new(),
             eye: Vec3::ZERO,
             view: Vec3::new(0.0, 0.0, -1.0),
             up: Vec3::new(0.0, 1.0, 0.0),
@@ -239,8 +242,8 @@ impl Scene {
             vfov: 50.0,
             width: 1,
             height: 1,
-            world_to_camera: MAT4_ZERO,
-            camera_to_world: MAT4_ZERO,
+            // world_to_camera: MAT4_ZERO,
+            // camera_to_world: MAT4_ZERO,
         };
 
         let fp = fs::read_to_string(file_name).expect("Failed to read input file");
@@ -277,9 +280,13 @@ impl Scene {
                         continue;
                     }
                     "f" => {
-                        scene
-                            .shapes
-                            .push(Shape::Triangle(parse_triangle(&scene, &mut tokens)?));
+                        let triangle = parse_triangle(&scene, &mut tokens)?;
+
+                        match scene.bspheres.last_mut() {
+                            Some(bs) => bs.shape_indices.push(scene.shapes.len()),
+                            _ => (),
+                        };
+                        scene.shapes.push(Shape::Triangle(triangle));
                         continue;
                     }
                     "sphere" => {
@@ -299,6 +306,10 @@ impl Scene {
                             (_, _) => SphNormMode::Flat,
                         };
 
+                        match scene.bspheres.last_mut() {
+                            Some(bs) => bs.shape_indices.push(scene.shapes.len()),
+                            _ => (),
+                        };
                         scene
                             .shapes
                             .push(Shape::Sphere(Sphere::new(mode, c, r, mtl, tx)));
@@ -311,6 +322,11 @@ impl Scene {
 
                         scene.lights.push(Light::new(p, w, i));
                         continue;
+                    }
+                    "bsphere" => {
+                        let c = parse!(Vec3);
+                        let r = parse!(f32);
+                        scene.bspheres.push(BoundingSphere::new(c, r));
                     }
                     "mtlcolor" => {
                         let od = parse!(Vec3).clamp(0.0, 1.0);
@@ -331,8 +347,6 @@ impl Scene {
                         None => continue,
                         Some(f) => {
                             let resolved = std::path::Path::new("./textures").join(f);
-
-                            dbg!(&resolved);
 
                             let img = image::open(&resolved)
                                 .with_context(|| format!("Failed to open texture {}", f))?

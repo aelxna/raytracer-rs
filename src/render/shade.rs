@@ -1,8 +1,9 @@
 use crate::config::scene::Scene;
+use crate::entities::bsphere::*;
 use crate::entities::light::*;
+use crate::entities::shape::sphere::SphNormMode;
+use crate::entities::shape::triangle::TriNormMode;
 use crate::entities::shape::*;
-use crate::entities::sphere::SphNormMode;
-use crate::entities::triangle::TriNormMode;
 use crate::render::trace::*;
 use crate::util::mat3::*;
 use crate::util::material::*;
@@ -21,8 +22,8 @@ fn diffuse_normal(
     p: Vec3,
     tr: &Trace,
 ) -> () {
-    match tr.shape {
-        Some(sh) => match sh {
+    match &tr.shape {
+        Some(sh) => match &**sh {
             Shape::Sphere(s) => {
                 let mut coord = Vec2::ZERO;
                 match s.texture.clone() {
@@ -154,7 +155,8 @@ fn apply_lighting(
     vi: Vec3,
     diffuse: Vec3,
     shape: &Shape,
-    shapes: &Vec<Shape>,
+    bspheres: &[BoundingSphere],
+    shapes: &[Shape],
     illum: &mut Vec3,
 ) -> () {
     for light in lights {
@@ -189,7 +191,7 @@ fn apply_lighting(
         };
 
         // trace ray between p and light
-        let st: Trace = trace_ray(sr, shapes, Some(shape), light_dist);
+        let st: Trace = trace_ray(sr, bspheres, shapes, Some(shape), light_dist);
 
         *illum = *illum + (li * st.shadow);
     }
@@ -267,7 +269,7 @@ pub fn shade_ray(
         return bkgcolor;
     }
 
-    let tr: Trace = trace_ray(r, &scene.shapes, skip, -1.0);
+    let tr: Trace = trace_ray(r, &scene.bspheres, &scene.shapes, skip, -1.0);
     let mut illum: Vec3 = Vec3::ZERO;
     let mut diffuse: Vec3 = Vec3::ZERO;
     let mut normal: Vec3 = Vec3::ZERO;
@@ -278,11 +280,11 @@ pub fn shade_ray(
     if tr.shape == None {
         return bkgcolor;
     }
-    let shape: &Shape = tr.shape.unwrap(); // must not be None
 
     diffuse_normal(&mut diffuse, &mut normal, &mut illum, p, &tr);
+    let shape: &Shape = tr.shape.unwrap(); // must not be None
 
-    let (eta_i, eta_t) = setup_eta(&mut normal, vi, shape, stack, scene.eta);
+    let (eta_i, eta_t) = setup_eta(&mut normal, vi, &*shape, stack, scene.eta);
 
     apply_lighting(
         &scene.lights,
@@ -290,13 +292,14 @@ pub fn shade_ray(
         normal,
         vi,
         diffuse,
-        shape,
+        &*shape,
+        &scene.bspheres,
         &scene.shapes,
         &mut illum,
     );
 
     reflections_transparency(
-        p, normal, vi, shape, eta_i, eta_t, scene, acc, skip, stack, &mut illum,
+        p, normal, vi, &*shape, eta_i, eta_t, scene, acc, skip, stack, &mut illum,
     );
 
     illum.clamp(0.0, 1.0)
