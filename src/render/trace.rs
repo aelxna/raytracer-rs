@@ -5,8 +5,8 @@ use crate::util::vec3::*;
 const ERR_BOUND: f32 = 0.001;
 
 #[derive(Clone)]
-pub struct Trace<'a> {
-    pub shape: Option<&'a Shape>,
+pub struct Trace {
+    pub shape: Option<usize>,
     pub b: f32,
     pub g: f32,
     pub t: f32,
@@ -18,9 +18,9 @@ pub fn trace_ray<'a>(
     r: Ray3,
     bspheres: &[BoundingSphere],
     shapes: &'a [Shape],
-    skip: Option<&'a Shape>,
+    skip: Option<usize>,
     l: f32,
-) -> Trace<'a> {
+) -> Trace {
     let mut ret: Trace = Trace {
         shape: None,
         b: -1.0,
@@ -29,7 +29,7 @@ pub fn trace_ray<'a>(
         shadow: 1.0,
     };
 
-    let mut si: Option<&Shape> = None;
+    let mut si: Option<usize> = None;
 
     for bs in bspheres {
         let b: f32 = 2.0 * r.dir.dot(r.origin - bs.center);
@@ -50,7 +50,7 @@ pub fn trace_ray<'a>(
             for &i in &bs.shape_indices {
                 if match skip {
                     None => false,
-                    Some(sk) => shapes[i] == *sk,
+                    Some(sk) => i == sk,
                 } {
                     continue;
                 }
@@ -84,34 +84,31 @@ pub fn trace_ray<'a>(
                             && (t1 < ret.t || ret.t < 0.0)
                         {
                             ret.t = t1;
-                            si = Some(&shapes[i]);
+                            si = Some(i);
                         } else if t2 > ERR_BOUND && (t2 < ret.t || ret.t < 0.0) {
                             ret.t = t2;
-                            si = Some(&shapes[i]);
+                            si = Some(i);
                         }
                     }
                     Shape::Triangle(tr) => {
-                        if tr.snorm.dot(r.dir) == 0.0 {
+                        let nd = tr.snorm.dot(r.dir);
+                        if nd == 0.0 {
                             continue;
                         }
 
                         // find collision with plane
-                        let t: f32 = -(tr.snorm.dot(r.origin) + tr.d) / tr.snorm.dot(r.dir);
+                        let t: f32 = -(tr.snorm.dot(r.origin) + tr.d) / nd;
                         let pt: Vec3 = r.origin + (r.dir * t);
                         let ep: Vec3 = pt - *(tr.vertices[0]);
-                        let det: f32 = (tr.e1.sq_mag() * tr.e2.sq_mag())
-                            - (tr.e1.dot(tr.e2) * tr.e1.dot(tr.e2));
-                        if det == 0.0 {
+                        if tr.det == 0.0 {
                             continue;
                         }
 
                         // get barycentric coordinates
-                        let beta: f32 = ((tr.e2.sq_mag() * tr.e1.dot(ep))
-                            - (tr.e1.dot(tr.e2) * tr.e2.dot(ep)))
-                            / det;
-                        let gamma: f32 = ((tr.e1.sq_mag() * tr.e2.dot(ep))
-                            - (tr.e1.dot(tr.e2) * tr.e1.dot(ep)))
-                            / det;
+                        let beta: f32 =
+                            ((tr.e2sqmag * tr.e1.dot(ep)) - (tr.e1de2 * tr.e2.dot(ep))) / tr.det;
+                        let gamma: f32 =
+                            ((tr.e1sqmag * tr.e2.dot(ep)) - (tr.e1de2 * tr.e1.dot(ep))) / tr.det;
                         if beta < 0.0 || gamma < 0.0 {
                             continue;
                         } else if beta + gamma > 1.0 {
@@ -124,7 +121,7 @@ pub fn trace_ray<'a>(
                                 ret.b = beta;
                                 ret.g = gamma;
                                 ret.t = t;
-                                si = Some(&shapes[i]);
+                                si = Some(i);
                             }
                         }
                     }

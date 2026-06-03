@@ -21,91 +21,85 @@ fn diffuse_normal(
     illum: &mut Vec3,
     p: Vec3,
     tr: &Trace,
+    shape: &Shape,
 ) -> () {
-    match &tr.shape {
-        Some(sh) => match sh {
-            Shape::Sphere(s) => {
-                let mut coord = Vec2::ZERO;
-                match s.texture.clone() {
-                    None => {
-                        *diffuse = s.mtl.diffuse;
-                    }
-                    Some(tx) => {
-                        // replace diffuse with texture lookup
-                        let sphere_norm: Vec3 = (p - s.center) * (1.0 / s.radius);
-                        let phi: f32 = f32::acos(sphere_norm.y);
-                        let mut theta: f32 = f32::atan2(sphere_norm.z, sphere_norm.x);
-                        if theta < 0.0 {
-                            theta += 2.0 * PI;
-                        }
-                        coord = Vec2::new(theta / (2.0 * PI), phi / PI);
-
-                        *diffuse = texture_lookup(&tx, coord).unwrap_or(Vec3::ZERO);
-                    }
+    match shape {
+        Shape::Sphere(s) => {
+            let mut coord = Vec2::ZERO;
+            match s.texture.clone() {
+                None => {
+                    *diffuse = s.mtl.diffuse;
                 }
-
-                *illum = *diffuse * s.mtl.ka;
-                *normal = match &s.mode {
-                    SphNormMode::Flat => (p - s.center).norm(),
-                    SphNormMode::Map(m) => {
-                        let n = (p - s.center).norm();
-                        let t = Vec3::new(-n.z, 0.0, n.x).norm();
-                        let b = n.cross(t);
-                        let tbn = mat3_rows(t, b, n);
-
-                        texture_lookup(&m, coord)
-                            .unwrap_or(Vec3::new(0.0, 1.0, 0.0))
-                            .norm()
-                            .transform(tbn)
+                Some(tx) => {
+                    // replace diffuse with texture lookup
+                    let sphere_norm: Vec3 = (p - s.center) * (1.0 / s.radius);
+                    let phi: f32 = f32::acos(sphere_norm.y);
+                    let mut theta: f32 = f32::atan2(sphere_norm.z, sphere_norm.x);
+                    if theta < 0.0 {
+                        theta += 2.0 * PI;
                     }
-                };
-            }
-            Shape::Triangle(t) => {
-                let alpha: f32 = 1.0 - (tr.b + tr.g);
-                let mut coord = Vec2::ZERO;
-                match t.texture.clone() {
-                    None => {
-                        *diffuse = t.mtl.diffuse;
-                    }
-                    Some(tx) => {
-                        // replace diffuse with texture lookup
-                        let txcoords = t.txcoords.clone().unwrap_or([
-                            Arc::new(Vec2::ZERO),
-                            Arc::new(Vec2::ZERO),
-                            Arc::new(Vec2::ZERO),
-                        ]);
-                        coord = Vec2::new(
-                            (alpha * txcoords[0].x)
-                                + (tr.b * txcoords[1].x)
-                                + (tr.g * txcoords[2].x),
-                            (alpha * txcoords[0].y)
-                                + (tr.b * txcoords[1].y)
-                                + (tr.g * txcoords[2].y),
-                        );
+                    coord = Vec2::new(theta / (2.0 * PI), phi / PI);
 
-                        *diffuse = texture_lookup(&tx, coord).unwrap_or(Vec3::ZERO);
-                    }
-                }
-
-                *illum = *diffuse * t.mtl.ka;
-
-                *normal = match &t.mode {
-                    TriNormMode::Flat => t.snorm,
-                    TriNormMode::Smooth(normals) => {
-                        // smooth shading
-                        ((*normals[0] * alpha) + (*normals[1] * tr.b) + (*normals[2] * tr.g)).norm()
-                    }
-                    TriNormMode::Map(norm) => {
-                        // normal mapping
-                        texture_lookup(&norm, coord)
-                            .unwrap_or(Vec3::new(0.0, 1.0, 0.0))
-                            .norm()
-                            .transform(t.tbn)
-                    }
+                    *diffuse = texture_lookup(&tx, coord).unwrap_or(Vec3::ZERO);
                 }
             }
-        },
-        None => (),
+
+            *illum = *diffuse * s.mtl.ka;
+            *normal = match &s.mode {
+                SphNormMode::Flat => (p - s.center).norm(),
+                SphNormMode::Map(m) => {
+                    let n = (p - s.center).norm();
+                    let t = Vec3::new(-n.z, 0.0, n.x).norm();
+                    let b = n.cross(t);
+                    let tbn = mat3_rows(t, b, n);
+
+                    texture_lookup(&m, coord)
+                        .unwrap_or(Vec3::new(0.0, 1.0, 0.0))
+                        .norm()
+                        .transform(tbn)
+                }
+            };
+        }
+        Shape::Triangle(t) => {
+            let alpha: f32 = 1.0 - (tr.b + tr.g);
+            let mut coord = Vec2::ZERO;
+            match t.texture.clone() {
+                None => {
+                    *diffuse = t.mtl.diffuse;
+                }
+                Some(tx) => {
+                    // replace diffuse with texture lookup
+                    let txcoords = t.txcoords.clone().unwrap_or([
+                        Arc::new(Vec2::ZERO),
+                        Arc::new(Vec2::ZERO),
+                        Arc::new(Vec2::ZERO),
+                    ]);
+                    coord = Vec2::new(
+                        (alpha * txcoords[0].x) + (tr.b * txcoords[1].x) + (tr.g * txcoords[2].x),
+                        (alpha * txcoords[0].y) + (tr.b * txcoords[1].y) + (tr.g * txcoords[2].y),
+                    );
+
+                    *diffuse = texture_lookup(&tx, coord).unwrap_or(Vec3::ZERO);
+                }
+            }
+
+            *illum = *diffuse * t.mtl.ka;
+
+            *normal = match &t.mode {
+                TriNormMode::Flat => t.snorm,
+                TriNormMode::Smooth(normals) => {
+                    // smooth shading
+                    ((*normals[0] * alpha) + (*normals[1] * tr.b) + (*normals[2] * tr.g)).norm()
+                }
+                TriNormMode::Map(norm) => {
+                    // normal mapping
+                    texture_lookup(&norm, coord)
+                        .unwrap_or(Vec3::new(0.0, 1.0, 0.0))
+                        .norm()
+                        .transform(t.tbn)
+                }
+            }
+        }
     }
 }
 
@@ -155,6 +149,7 @@ fn apply_lighting(
     vi: Vec3,
     diffuse: Vec3,
     shape: &Shape,
+    shape_idx: usize,
     bspheres: &[BoundingSphere],
     shapes: &[Shape],
     illum: &mut Vec3,
@@ -165,17 +160,26 @@ fn apply_lighting(
         } else {
             (-light.pos).norm()
         };
-        let h: Vec3 = (l + vi).norm();
 
         // calculate diffuse and specular components
         let (df, sp): (Vec3, Vec3) = match shape {
             Shape::Sphere(s) => (
                 diffuse * (s.mtl.kd * f32::max(0.0, normal.dot(l))),
-                s.mtl.specular * (s.mtl.ks * f32::max(0.0, f32::powf(normal.dot(h), s.mtl.exp))),
+                if s.mtl.ks > 0.0 {
+                    let h: Vec3 = (l + vi).norm();
+                    s.mtl.specular * (s.mtl.ks * f32::max(0.0, f32::powf(normal.dot(h), s.mtl.exp)))
+                } else {
+                    Vec3::ZERO
+                },
             ),
             Shape::Triangle(t) => (
                 diffuse * (t.mtl.kd * f32::max(0.0, normal.dot(l))),
-                t.mtl.specular * (t.mtl.ks * f32::max(0.0, f32::powf(normal.dot(h), t.mtl.exp))),
+                if t.mtl.ks > 0.0 {
+                    let h: Vec3 = (l + vi).norm();
+                    t.mtl.specular * (t.mtl.ks * f32::max(0.0, f32::powf(normal.dot(h), t.mtl.exp)))
+                } else {
+                    Vec3::ZERO
+                },
             ),
         };
 
@@ -191,7 +195,7 @@ fn apply_lighting(
         };
 
         // trace ray between p and light
-        let st: Trace = trace_ray(sr, bspheres, shapes, Some(shape), light_dist);
+        let st: Trace = trace_ray(sr, bspheres, shapes, Some(shape_idx), light_dist);
 
         *illum = *illum + (li * st.shadow);
     }
@@ -207,7 +211,7 @@ fn reflections_transparency(
     eta_t: f32,
     scene: &Scene,
     acc: usize,
-    skip: Option<&Shape>,
+    skip: Option<usize>,
     stack: &mut Vec<f32>,
     illum: &mut Vec3,
 ) -> () {
@@ -259,7 +263,7 @@ pub fn shade_ray(
     r: Ray3,
     scene: &Scene,
     acc: usize,
-    skip: Option<&Shape>,
+    skip: Option<usize>,
     stack: &mut Vec<f32>,
 ) -> Vec3 {
     let bkgcolor: Vec3 = scene.bkgcolor;
@@ -280,11 +284,22 @@ pub fn shade_ray(
     if tr.shape == None {
         return bkgcolor;
     }
+    let shape_idx = tr.shape.unwrap(); // must not be None
+    let shape: &Shape = &scene.shapes[shape_idx];
 
-    diffuse_normal(&mut diffuse, &mut normal, &mut illum, p, &tr);
-    let shape: &Shape = tr.shape.unwrap(); // must not be None
+    diffuse_normal(&mut diffuse, &mut normal, &mut illum, p, &tr, &shape);
 
-    let (eta_i, eta_t) = setup_eta(&mut normal, vi, shape, stack, scene.eta);
+    let (matte, opacity): (bool, f32) = match shape {
+        Shape::Sphere(s) => (s.mtl.ks == 0.0, s.mtl.alpha),
+        Shape::Triangle(t) => (t.mtl.ks == 0.0, t.mtl.alpha),
+    };
+
+    let mut eta_i = 1.0;
+    let mut eta_t = 1.0;
+
+    if !matte || (opacity < 1.0) {
+        (eta_i, eta_t) = setup_eta(&mut normal, vi, shape, stack, scene.eta);
+    }
 
     apply_lighting(
         &scene.lights,
@@ -293,14 +308,17 @@ pub fn shade_ray(
         vi,
         diffuse,
         shape,
+        shape_idx,
         &scene.bspheres,
         &scene.shapes,
         &mut illum,
     );
 
-    reflections_transparency(
-        p, normal, vi, &*shape, eta_i, eta_t, scene, acc, skip, stack, &mut illum,
-    );
+    if !matte || (opacity < 1.0) {
+        reflections_transparency(
+            p, normal, vi, &*shape, eta_i, eta_t, scene, acc, skip, stack, &mut illum,
+        );
+    }
 
     illum.clamp(0.0, 1.0)
 }

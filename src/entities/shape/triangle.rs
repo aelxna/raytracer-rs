@@ -13,6 +13,10 @@ pub struct Triangle {
     pub e2: Vec3,
     pub snorm: Vec3,
     pub d: f32,
+    pub e1sqmag: f32,
+    pub e2sqmag: f32,
+    pub e1de2: f32,
+    pub det: f32,
     pub tbn: Mat3,
     pub mtl: Arc<Material>,
     pub texture: Option<Arc<RgbImage>>,
@@ -39,6 +43,10 @@ impl Triangle {
         let e2 = *v[2] - *v[0];
         let snorm = e1.cross(e2).norm();
         let d = -snorm.dot(*v[1]);
+        let e1sqmag = e1.sq_mag();
+        let e2sqmag = e2.sq_mag();
+        let e1de2 = e1.dot(e2);
+        let det: f32 = (e1sqmag * e2sqmag) - (e1de2 * e1de2);
 
         let tbn: Mat3 = match (&tc, &mode) {
             (Some(c), TriNormMode::Map(_)) => {
@@ -69,6 +77,10 @@ impl Triangle {
             e2: e2,
             snorm: snorm,
             d: d,
+            det: det,
+            e1sqmag: e1sqmag,
+            e2sqmag: e2sqmag,
+            e1de2: e1de2,
             tbn: tbn,
             mtl: mtl,
             texture: tx,
