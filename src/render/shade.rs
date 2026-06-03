@@ -220,7 +220,8 @@ fn reflections_transparency(
         Shape::Triangle(t) => (t.mtl.ks == 0.0, t.mtl.alpha),
     };
     let f0: f32 = f32::powf((eta_t - eta_i) / (eta_t + eta_i), 2.0);
-    let fr: f32 = f0 + (1.0 - f0) * f32::powf(1.0 - vi.dot(normal), 5.0);
+    let norm_inv = 1.0 - vi.dot(normal);
+    let fr: f32 = f0 + (1.0 - f0) * norm_inv * norm_inv * norm_inv * norm_inv * norm_inv;
 
     if !matte {
         // reflections
